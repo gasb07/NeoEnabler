@@ -26,7 +26,6 @@ body:
         - Battlefield Hardline - 4K
         - Bloodborne - 1440p
         - Bloodborne - 1620p
-        - Bloodborne - 1800p
         - Bloodborne - Native 4K
         - Driveclub - 1440p
         - Driveclub - 4K (1620p render)
@@ -58,12 +57,15 @@ body:
         - Uncharted 1 - 1440p
         - Uncharted 1 - 1620p
         - Uncharted 1 - 1800p
+        - Uncharted 1 - Native 4K
         - Uncharted 2 - 1440p
         - Uncharted 2 - 1620p
         - Uncharted 2 - 1800p
+        - Uncharted 2 - Native 4K
         - Uncharted 3 - 1440p
         - Uncharted 3 - 1620p
         - Uncharted 3 - 1800p
+        - Uncharted 3 - Native 4K
     validations:
       required: true
   - type: dropdown

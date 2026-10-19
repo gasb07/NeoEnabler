@@ -118,7 +118,7 @@ game needs at launch. ps-patch-system ignores this attribute.
 | --- | --- | --- |
 | Need for Speed Rivals (01.04, 01.03) | 1440p, 4K | If your existing patch file for the game has "Resolution Patch", keep it off. |
 | Resident Evil 6 (01.01) | 1440p, 4K | Small Capcom logo in 4K. |
-| Bloodborne (01.09) | 1440p, 1620p, 1800p, native 4K | Native 4K needs the 8 GiB memory budget. **Tested on firmware 13.20 only.** |
+| Bloodborne (01.09) | 1440p, 1620p, native 4K | Native 4K needs the 8 GiB memory budget. **Tested on firmware 13.20 only.** |
 | Just Cause 3 (01.05) | 1440p, 4K | Also enable "Offline mode", or the game keeps trying to log in. |
 | Battlefield 4 (01.24) | 1440p, 1620p, 1800p, 4K | 1800p holds 60 fps. 4K runs around 49 fps. |
 | Battlefield Hardline (01.09) | 1440p, 1620p, 1800p, 4K | |
@@ -128,7 +128,7 @@ game needs at launch. ps-patch-system ignores this attribute.
 | Batman: Arkham Knight (01.15) | 1620p, 1800p, native 4K | |
 | Sleeping Dogs: Definitive Edition (01.01) | 1440p, 1620p, 1800p, native 4K, each also up to 60 fps | The 60 fps entries use triple buffering: no tearing, slight stutter. 1800p up to 60 fps runs at 53-57 fps, native 4K up to 60 fps at 41-44 fps. |
 | Driveclub (01.28) | 1440p, 4K (1620p render), 4K (1800p render), native 4K | 4K needs the 8 GiB memory budget. **Tested on firmware 13.20 only.** 4K with 1800p render runs close to 60 fps; native 4K is below 60 fps in races. 4K with 1620p or 1800p render may show blocky artifacts in the clouds and on other surfaces. Native 4K: snow can show inside the car. |
-| Uncharted: The Nathan Drake Collection (01.02) | 1440p, 1620p, 1800p for each of the three games | The collection starts in Uncharted 1, which sets PS4 Pro mode for Uncharted 2 and 3: an Uncharted 2 or 3 entry needs an Uncharted 1 entry on (the panel enables it). |
+| Uncharted: The Nathan Drake Collection (01.02) | 1440p, 1620p, 1800p, native 4K for each of the three games | The collection starts in Uncharted 1, which sets PS4 Pro mode for Uncharted 2 and 3: an Uncharted 2 or 3 entry needs an Uncharted 1 entry on (the panel enables it). Native 4K fits the stock memory with a smaller texture pool. |
 
 Patch IDs, how the hook works and how to build from source: [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
@@ -162,7 +162,7 @@ share your results.**
 
 | Patch | Author | Source |
 | --- | --- | --- |
-| Bloodborne: Resolution Patch WxH, base of the NEO 1440p/1620p/1800p entries | [Kyo](https://github.com/Kyoskii) | [shadps4-emu/ps4_cheats](https://github.com/shadps4-emu/ps4_cheats/blob/main/PATCHES/Bloodborne.xml) |
+| Bloodborne: Resolution Patch WxH, base of the NEO 1440p/1620p entries | [Kyo](https://github.com/Kyoskii) | [shadps4-emu/ps4_cheats](https://github.com/shadps4-emu/ps4_cheats/blob/main/PATCHES/Bloodborne.xml) |
 | The Order: 1886: 60 FPS Unlock, used by the Native 4K 60fps entry | [illusion](https://github.com/illusionyy) | PS-Game-Patch, `patches/xml/TheOrder1886-Orbis.xml` |
 
 Entries with author "Local experiment" (Pro mode, resolutions, JC3 offline mode) and the NEO fixes inside the
