@@ -1516,6 +1516,60 @@ static void serve_icon(int fd, const char *tid) {
     free(png);
 }
 
+/* Start time of a running process (KERN_PROC_PROC enumeration, the tested query on this target); 0 when found. */
+static int proc_start(pid_t pid, struct timeval *start) {
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0}; size_t n = 0; int found = 0;
+    if (sysctl(mib, 4, NULL, &n, NULL, 0) || !n || n > 32 * 1024 * 1024) return -1;
+    unsigned char *buf = malloc(n);
+    if (!buf || sysctl(mib, 4, buf, &n, NULL, 0)) { free(buf); return -1; }
+    for (size_t off = 0; !found && off + sizeof(struct kinfo_proc) <= n;) {
+        struct kinfo_proc *ki = (void *)(buf + off);
+        if (ki->ki_structsize < (int)sizeof(*ki) || (size_t)ki->ki_structsize > n - off) break;
+        if (ki->ki_pid == pid) { *start = ki->ki_start; found = 1; }
+        off += (size_t)ki->ki_structsize;
+    }
+    free(buf);
+    return found ? 0 : 1;
+}
+
+/* The previous run can stay alive without a working panel (rest mode), still owning its launch hook. Each run
+   records its PID and process start time; a process with both values is that run and nothing else, even after a
+   reboot reuses the PID. Returns 1 when the previous run is confirmed gone (exited, or killed here), 0 when it is
+   unknown (no record: first run or 0.4.0 and older). Records this run afterwards. */
+#define MANAGER_PID_FILE NEO_LOG_DIR "/manager.pid"
+static int previous_run_gone(void) {
+    int gone = 0; long pid = 0, sec = 0, usec = 0;
+    FILE *f = fopen(MANAGER_PID_FILE, "r");
+    if (f) {
+        if (fscanf(f, "%ld %ld %ld", &pid, &sec, &usec) == 3 && pid > 0 && pid != getpid()) {
+            struct timeval st;
+            int r = proc_start((pid_t)pid, &st);
+            if (r == 1 || (!r && (st.tv_sec != sec || st.tv_usec != usec))) {
+                gone = 1;
+                log_line("previous run (PID %ld) has exited", pid);
+            } else if (!r && open_game((char[10]){0})) {
+                /* it may own an 8GB Mode transaction that it restores when the game closes */
+                log_line("previous run (PID %ld) is still running and a game is open; left running", pid);
+            } else if (!r) {
+                log_line("previous run (PID %ld) is still running without its panel; stopping it", pid);
+                if (!kill((pid_t)pid, SIGKILL))
+                    for (int i = 0; i < 50 && !gone; i++) {
+                        usleep(100000);
+                        if (proc_start((pid_t)pid, &st) == 1) gone = 1;
+                    }
+                log_line("previous run (PID %ld) %s", pid, gone ? "stopped" : "did not stop; its launch hook is left alone");
+            }
+        }
+        fclose(f);
+    }
+    struct timeval me;
+    if (!proc_start(getpid(), &me) && (f = fopen(MANAGER_PID_FILE, "w"))) {
+        fprintf(f, "%ld %ld %ld\n", (long)getpid(), (long)me.tv_sec, (long)me.tv_usec);
+        fclose(f);
+    }
+    return gone;
+}
+
 /* The payload loader names every payload process "payload.elf". Show the release file name instead: find the current
    name (ki_comm) in the first 0x1000 bytes of this process's struct proc and write the new p_comm there. */
 static void set_process_name(const char *name) {
@@ -1562,6 +1616,7 @@ int main(void) {
     launch_attach(1);
     log_line("launch: questions %s (TSC %llu Hz, wait %d s)", live_ok ? "enabled" : "unavailable, hook not installed",
              (unsigned long long)tsc_hz, LAUNCH_WAIT_S);
+    bm_reuse_allowed = previous_run_gone();
     memory_init(fw_raw_version(), tsc_hz * 3);
     memory_wants8 = memory_launch_wants;
     memory_refused8 = memory_launch_refused;

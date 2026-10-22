@@ -49,7 +49,7 @@ static int mock_usleep(unsigned u){(void)u;return 0;}
 #define usleep mock_usleep
 #include "../src/budget_mount_hook.h"
 static void reset(uint32_t fw){
- memset(&bm,0,sizeof bm);memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
+ memset(&bm,0,sizeof bm);bm_reuse_allowed=0;memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
  state=2;permission=7;stop_count=continue_count=continue_fail=stop_timeout=writes=readback_fail=pending_readback=cave_write_fail=change_on_stop=0;
  const bm_profile*p=bm_find(fw);assert(p);call_address=MAIN_BASE+p->call;cave_address=MAIN_BASE+p->cave;
  const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0xe8,0x18,0,0};
@@ -104,6 +104,22 @@ int main(void){
   assert(bm.cave==cave_address+1024&&!memcmp(at(call_address,5),bm.redirect,5));
   {uint32_t v;memcpy(&v,at(cave_address+MS_ENABLED,4),4);assert(!v);}
   assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));
+  /* Previous run confirmed gone: the idle orphan's slot is reused in place (same redirect, same code, cleared mailbox,
+     new cycles) instead of spending a fresh slot. */
+  reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);field(MS_SEQ,7);
+  {unsigned char redirect[5];memcpy(redirect,bm.redirect,5);uint64_t old_cave=bm.cave;
+   memset(&bm,0,sizeof bm);writes=stop_count=continue_count=0;bm_reuse_allowed=1;
+   assert(!bm_install(fw,999)&&bm.attached&&bm.recovered==2&&bm.cave==old_cave&&state==2&&stop_count==1&&continue_count==1);
+   assert(!memcmp(at(call_address,5),redirect,5)&&!memcmp(bm.redirect,redirect,5));
+   uint32_t v;uint64_t c;memcpy(&v,at(old_cave+MS_ENABLED,4),4);assert(!v);memcpy(&v,at(old_cave+MS_SEQ,4),4);assert(!v);
+   memcpy(&c,at(old_cave+MS_WAIT_CYCLES,8),8);assert(c==999);assert(!memcmp(at(old_cave,MS_ORIGINAL),step_code,MS_ORIGINAL));
+   for(size_t z=1024;z<2048;z++)assert(!at(cave_address,2048)[z]);           /* no fresh slot used */
+   assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));}
+  /* Reuse allowed but the orphan is busy: still refused without writes to the call. */
+  reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);field(MS_GATE,1);
+  {unsigned char redirect[5];memcpy(redirect,bm.redirect,5);
+   memset(&bm,0,sizeof bm);writes=stop_count=continue_count=0;bm_reuse_allowed=1;
+   assert(bm_install(fw,1)==-4&&!writes&&!bm.attached&&strstr(bm.failure,"busy")&&!memcmp(at(call_address,5),redirect,5));}
   /* A busy orphan (in a call, holding the gate or with DATA dirty) is never touched. */
   {const unsigned busy[]={MS_ACTIVE,MS_GATE,MS_DIRTY};
    for(unsigned i=0;i<3;i++){
@@ -128,5 +144,5 @@ int main(void){
   reset(fw);assert(!bm_install(fw,1));continue_fail=1;assert(bm_remove()==-101&&bm.fatal&&bm.stopped);
  }
  assert(bm_find(0x14000000)==NULL);
- puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, orphan recovery, detach races and resume failures");return 0;
+ puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, orphan recovery and reuse, detach races and resume failures");return 0;
 }

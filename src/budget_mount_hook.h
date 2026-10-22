@@ -34,6 +34,8 @@ typedef struct {
  int recovered;
 } bm_hook;
 static bm_hook bm;
+/* Set by the manager when the previous run is confirmed gone (killed or exited): its idle slot can be reused. */
+static int bm_reuse_allowed;
 static const bm_profile *bm_find(uint32_t fw){
  for(unsigned i=0;i<sizeof bm_profiles/sizeof bm_profiles[0];i++)if(bm_profiles[i].fw==fw)return &bm_profiles[i];
  return NULL;
@@ -159,8 +161,9 @@ static int bm_permissions(void){
 }
 /* A manager that exits without Quit (killed, rest mode) leaves the call redirected to its armed shim. Adopt that
  * orphan only when it is ours (call into the profile reservation, our code, magic and original wrapper) and idle
- * with ShellCore stopped: disarm it and restore the call, which leaves a normal retained slot. Anything else is
- * left untouched for bm_valid to report. */
+ * with ShellCore stopped. When the previous run is confirmed gone (bm_reuse_allowed), keep the redirect and rewrite
+ * the slot with the same code and a cleared mailbox (returns 1, attached). Otherwise disarm it and restore the call,
+ * which leaves a normal retained slot and a fresh one is used. Anything else is left untouched for bm_valid. */
 static int bm_recover(void){
  const bm_profile *p=bm.profile;unsigned char call[5],b[1024];int32_t rel;
  if(bm_read(bm.base+p->call,call,5)||call[0]!=0xe8||!memcmp(call,p->call_bytes,5))return 0;
@@ -175,6 +178,16 @@ static int bm_recover(void){
  bm_mailbox m;int rc=0;
  if(bm_read(target+MS_ENABLED,&m,sizeof m)||memcmp(m.magic,"NEOMS001",8))rc=bm_fail("Previous launch hook unreadable",target);
  else if(m.active||m.gate||m.dirty)rc=bm_fail("Previous launch hook busy; reboot required",target);
+ else if(bm_reuse_allowed){
+  unsigned char code[1024]={0};memcpy(code,step_code,sizeof step_code);
+  memcpy(code+MS_ORIGINAL,&original,8);memcpy(code+MS_WAIT_CYCLES,&bm.cycles,8);
+  bm.cave=target;memcpy(bm.saved,p->call_bytes,5);memcpy(bm.redirect,call,5);
+  uint32_t zero=0;
+  /* same code bytes; only the cycles and the mailbox change, so a thread stopped at the entry is unaffected */
+  if(bm_permissions()||bm_store(target+MS_ENABLED,&zero,4)||bm_store(target,code,sizeof code))
+   rc=bm_fail("Previous launch hook reuse failed",target);
+  else{bm.attached=1;bm.recovered=2;}
+ }
  else{
   uint32_t zero=0;
   if(bm_store(target+MS_ENABLED,&zero,4)||bm_store(bm.base+p->call,p->call_bytes,5)){
@@ -183,8 +196,8 @@ static int bm_recover(void){
    rc=bm_fail("Previous launch hook recovery failed",target);
   }else bm.recovered=1;
  }
- if(bm_resume()){bm.fatal=1;return -1;}
- return rc;
+ if(bm_resume()){bm.fatal=1;bm.attached=0;return -1;}
+ return rc?rc:bm.attached;
 }
 static int bm_install(uint32_t fw,uint64_t cycles){
  if(bm.attached)return 0;
@@ -195,7 +208,9 @@ static int bm_install(uint32_t fw,uint64_t cycles){
     kernel_dynlib_obj(bm.pid,handle,&lib)||main.mapsize<bm.profile->got+8)return -3;
  bm.base=main.mapbase;bm.lib=lib.mapbase;bm.cycles=cycles;
  bm.main_text_size=main.textsize;bm.main_map_size=main.mapsize;bm.frame_header=main.eh_frame_hdr;
- if(bm_recover())return bm.fatal?-101:-4;
+ int recovered=bm_recover();
+ if(recovered<0)return bm.fatal?-101:-4;
+ if(recovered)return 0;
  if(bm_valid()||bm_reserve(&bm.cave)||bm_permissions())return -4;
  int64_t disp=(int64_t)bm.cave-(int64_t)(bm.base+bm.profile->call+5);if(disp!=(int32_t)disp)return -5;
  if(bm_stop())return -6;
