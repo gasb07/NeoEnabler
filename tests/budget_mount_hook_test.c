@@ -96,9 +96,26 @@ int main(void){
    assert(bm_install(fw,1)==-4&&!writes&&!stop_count);
    assert(strstr(bm.failure,"Reservation occupied")&&bm.check_address==MAIN_BASE+slot);
   }
-  /* Simulate killing the payload without Quit: changed CALL must be refused. */
+  /* Killing the payload without Quit (rest mode): an idle armed orphan of ours is disarmed, the call restored and a
+     fresh slot used; the orphan stays as a retained slot. */
   reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);
-  memset(&bm,0,sizeof bm);writes=stop_count=0;
+  memset(&bm,0,sizeof bm);writes=stop_count=continue_count=0;
+  assert(!bm_install(fw,1)&&bm.recovered&&bm.attached&&state==2&&stop_count==2&&continue_count==2);
+  assert(bm.cave==cave_address+1024&&!memcmp(at(call_address,5),bm.redirect,5));
+  {uint32_t v;memcpy(&v,at(cave_address+MS_ENABLED,4),4);assert(!v);}
+  assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));
+  /* A busy orphan (in a call, holding the gate or with DATA dirty) is never touched. */
+  {const unsigned busy[]={MS_ACTIVE,MS_GATE,MS_DIRTY};
+   for(unsigned i=0;i<3;i++){
+    reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);field(busy[i],1);
+    unsigned char redirect[5];memcpy(redirect,bm.redirect,5);
+    memset(&bm,0,sizeof bm);writes=stop_count=continue_count=0;
+    assert(bm_install(fw,1)==-4&&!writes&&stop_count==1&&continue_count==1&&state==2&&!bm.attached);
+    assert(strstr(bm.failure,"busy")&&!memcmp(at(call_address,5),redirect,5));
+   }}
+  /* A redirect that is not ours (outside the reservation or other code) is still refused without any write. */
+  reset(fw);at(call_address,5)[1]^=0x40;assert(bm_install(fw,1)==-4&&!writes&&!stop_count&&strstr(bm.failure,"BeginAppMount2 call"));
+  reset(fw);assert(!bm_install(fw,1));at(cave_address,1)[0]^=1;memset(&bm,0,sizeof bm);writes=stop_count=0;
   assert(bm_install(fw,1)==-4&&!writes&&!stop_count&&strstr(bm.failure,"BeginAppMount2 call"));
   reset(fw);readback_fail=1;assert(bm_install(fw,1)==-9&&!bm.attached&&state==2);assert(!memcmp(at(call_address,5),p->call_bytes,5));
   reset(fw);cave_write_fail=1;assert(bm_install(fw,1)==-8&&!bm.attached&&!bm.fatal&&state==2);for(size_t z=0;z<1024;z++)assert(!at(cave_address,1024)[z]);assert(!bm_install(fw,1));assert(!bm_remove());
@@ -111,5 +128,5 @@ int main(void){
   reset(fw);assert(!bm_install(fw,1));continue_fail=1;assert(bm_remove()==-101&&bm.fatal&&bm.stopped);
  }
  assert(bm_find(0x14000000)==NULL);
- puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, detach races and resume failures");return 0;
+ puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, orphan recovery, detach races and resume failures");return 0;
 }

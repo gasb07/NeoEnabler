@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- NeoEnabler now shows as neo-manager.elf in the process list instead of payload.elf.
+- 8GB Mode is available again when NeoEnabler starts after rest mode or after being closed without Quit. Before, the
+  launch hook left by the previous run made it report "BeginAppMount2 call differs" until a reboot.
+
 ## 0.4.0
 
 - The 8 GiB memory feature is now called 8GB Mode in the panel and notifications.

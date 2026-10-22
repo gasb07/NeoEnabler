@@ -38,7 +38,8 @@ static int memory_init(uint32_t fw,uint64_t cycles){
  memory_data_mode=memory_data!=NULL;
  if(!memory_data_mode)return 0;
  int rc=bm_install(fw,cycles);
- snprintf(memory_message,sizeof memory_message,"No-HV launch hook %s (rc=%d)%s%s",rc?"unavailable":"installed",rc,rc&&bm.failure[0]?": ":"",rc?bm.failure:"");
+ snprintf(memory_message,sizeof memory_message,"No-HV launch hook %s (rc=%d)%s%s%s",rc?"unavailable":"installed",rc,rc&&bm.failure[0]?": ":"",rc?bm.failure:"",
+          bm.recovered?"; hook left by a previous run recovered":"");
  if(bm.fatal)memory_data_blocked=1;
  return rc;
 }

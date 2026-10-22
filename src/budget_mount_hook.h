@@ -31,6 +31,7 @@ typedef struct {
  uint64_t check_address;
  uint64_t main_text_size,main_map_size,frame_header;
  char failure_preview[97],slot_summary[160];
+ int recovered;
 } bm_hook;
 static bm_hook bm;
 static const bm_profile *bm_find(uint32_t fw){
@@ -156,6 +157,35 @@ static int bm_permissions(void){
  }
  return 0;
 }
+/* A manager that exits without Quit (killed, rest mode) leaves the call redirected to its armed shim. Adopt that
+ * orphan only when it is ours (call into the profile reservation, our code, magic and original wrapper) and idle
+ * with ShellCore stopped: disarm it and restore the call, which leaves a normal retained slot. Anything else is
+ * left untouched for bm_valid to report. */
+static int bm_recover(void){
+ const bm_profile *p=bm.profile;unsigned char call[5],b[1024];int32_t rel;
+ if(bm_read(bm.base+p->call,call,5)||call[0]!=0xe8||!memcmp(call,p->call_bytes,5))return 0;
+ memcpy(&rel,call+1,4);
+ uint64_t target=bm.base+p->call+5+(int64_t)rel;
+ if(target<bm.base+p->cave||target+sizeof b>bm.base+p->end||((target-bm.base)&1023))return 0;
+ uint64_t original=bm.lib+p->wrapper,code_original;
+ if(bm_read(target,b,sizeof b)||memcmp(b,step_code,MS_ORIGINAL)||
+    memcmp(b+MS_MAGIC,step_code+MS_MAGIC,sizeof step_code-MS_MAGIC))return 0;
+ memcpy(&code_original,b+MS_ORIGINAL,8);if(code_original!=original)return 0;
+ if(bm_stop())return bm_fail("Previous launch hook found; ShellCore could not be paused to recover it",target);
+ bm_mailbox m;int rc=0;
+ if(bm_read(target+MS_ENABLED,&m,sizeof m)||memcmp(m.magic,"NEOMS001",8))rc=bm_fail("Previous launch hook unreadable",target);
+ else if(m.active||m.gate||m.dirty)rc=bm_fail("Previous launch hook busy; reboot required",target);
+ else{
+  uint32_t zero=0;
+  if(bm_store(target+MS_ENABLED,&zero,4)||bm_store(bm.base+p->call,p->call_bytes,5)){
+   /* put the redirect back: a disarmed shim only forwards to the original, an armed one is never left half-written */
+   if(bm_store(bm.base+p->call,call,5))bm.fatal=1;
+   rc=bm_fail("Previous launch hook recovery failed",target);
+  }else bm.recovered=1;
+ }
+ if(bm_resume()){bm.fatal=1;return -1;}
+ return rc;
+}
 static int bm_install(uint32_t fw,uint64_t cycles){
  if(bm.attached)return 0;
  memset(&bm,0,sizeof bm);bm.profile=bm_find(fw);if(!bm.profile)return -1;
@@ -165,6 +195,7 @@ static int bm_install(uint32_t fw,uint64_t cycles){
     kernel_dynlib_obj(bm.pid,handle,&lib)||main.mapsize<bm.profile->got+8)return -3;
  bm.base=main.mapbase;bm.lib=lib.mapbase;bm.cycles=cycles;
  bm.main_text_size=main.textsize;bm.main_map_size=main.mapsize;bm.frame_header=main.eh_frame_hdr;
+ if(bm_recover())return bm.fatal?-101:-4;
  if(bm_valid()||bm_reserve(&bm.cave)||bm_permissions())return -4;
  int64_t disp=(int64_t)bm.cave-(int64_t)(bm.base+bm.profile->call+5);if(disp!=(int32_t)disp)return -5;
  if(bm_stop())return -6;
