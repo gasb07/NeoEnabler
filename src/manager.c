@@ -1516,6 +1516,27 @@ static void serve_icon(int fd, const char *tid) {
     free(png);
 }
 
+/* The payload loader names every payload process "payload.elf". Show the release file name instead: find the current
+   name (ki_comm) in the first 0x1000 bytes of this process's struct proc and write the new p_comm there. */
+static void set_process_name(const char *name) {
+    static unsigned char kb[0x1000], pb[0x1000];
+    size_t n = sizeof(kb); int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
+    struct kinfo_proc *kp = (void *)kb;          /* the console's kinfo_proc is larger than the SDK's */
+    if (sysctl(mib, 4, kb, &n, NULL, 0) || !kp->ki_comm[0] || !strcmp(kp->ki_comm, name)) return;
+    char cur[20] = {0}; strncpy(cur, kp->ki_comm, sizeof(cur) - 1);
+    intptr_t p = kernel_get_proc(getpid());
+    if (!p || kernel_copyout(p, pb, sizeof(pb))) { log_line("process name: struct proc not readable"); return; }
+    size_t l = strlen(cur) + 1;
+    for (size_t o = 0; o + 20 <= sizeof(pb); o++)
+        if (!memcmp(pb + o, cur, l)) {
+            char z[20] = {0}; strncpy(z, name, sizeof(z) - 1);
+            int rc = kernel_copyin(z, p + (intptr_t)o, sizeof(z));
+            log_line("process name: %s -> %s (struct proc +0x%zx, rc %d)", cur, name, o, rc);
+            return;
+        }
+    log_line("process name: %s not found in struct proc", cur);
+}
+
 int main(void) {
     signal(SIGPIPE, SIG_IGN);
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -1531,6 +1552,7 @@ int main(void) {
         return 1;
     }
     log_line("%s started", VERSION);
+    set_process_name("neo-manager.elf");
     sceUserServiceInitialize(0);
     settings_load();
     log_line("settings: force_neo=%d force_8gib=%d gpu_clock_enabled=%d gpu_clock_mhz=%u",
