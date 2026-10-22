@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA12125</ID>
+  </TitleID>
+  <Metadata Title="Spyro Reignited Trilogy" Name="1620p (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output with 2880x1620 render in PS4 Pro (NEO) mode (the game renders 2560x1440 into a 1920x1080 output by default). Needs 2160p video output. Enable only one resolution entry. Requires NEO Enabler." Author="Shane O'Reilly" PatchVer="1.0" AppVer="01.03" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x122734a" Value="9090" />
+      <Line Type="bytes" Address="0x1228a2e" Value="9090" />
+      <Line Type="bytes" Address="0x2b5dc66" Value="b80000403fc5f96ec0eb1f" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Spyro Reignited Trilogy" Name="1800p (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output with 3200x1800 render in PS4 Pro (NEO) mode (the game renders 2560x1440 into a 1920x1080 output by default). Needs 2160p video output. Enable only one resolution entry. Requires NEO Enabler." Author="Shane O'Reilly" PatchVer="1.0" AppVer="01.03" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x122734a" Value="9090" />
+      <Line Type="bytes" Address="0x1228a2e" Value="9090" />
+      <Line Type="bytes" Address="0x2b5dc66" Value="b85555553fc5f96ec0eb1f" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Spyro Reignited Trilogy" Name="Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output and render in PS4 Pro (NEO) mode (the game renders 2560x1440 into a 1920x1080 output by default). Needs 2160p video output. Enable only one resolution entry. Requires NEO Enabler." Author="Shane O'Reilly" PatchVer="1.0" AppVer="01.03" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x122734a" Value="9090" />
+      <Line Type="bytes" Address="0x1228a2e" Value="9090" />
+      <Line Type="bytes" Address="0x2b5dc66" Value="b80000803fc5f96ec0eb1f" />
+    </PatchList>
+  </Metadata>
+</Patch>

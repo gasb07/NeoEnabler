@@ -28,5 +28,6 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Dishonored Definitive Edition (01.03) | 1440p, 1800p, Native 4K, 60 FPS (triple buffering) | 60 FPS (triple buffering) lets the frame rate sit between 30 and 60 and works alone or with any resolution entry. |
 | Dishonored 2 (01.07) | 1620p, 1800p, Native 4K, 60 FPS, Skip intro videos | The game already runs in PS4 Pro mode at 1440p. Native 4K renders at full 4K (no dynamic resolution); GPU boost at 2200 MHz is recommended. All resolution entries use a sharper temporal AA. 60 FPS works alone or with any resolution entry. |
 | Prey (01.12) | 1620p, 1800p, native 4K, 60 FPS, Skip intro videos | **Requires NeoEnabler 0.5.0 or newer** (the game code is in PreyDll.prx). The game already runs in PS4 Pro mode at 1440p with dynamic resolution; these entries render at a fixed full resolution. 60 FPS works alone or with any resolution entry. |
+| Spyro Reignited Trilogy (01.00 disc, shown as 01.03) | 1620p, 1800p, native 4K | The game already runs in PS4 Pro mode: it renders 2560x1440 into a 1080p output. The entries output 2160p and need the PS5 video output set to 2160p; with 1080p output they render below the stock 1440p. 1620p leaves the most headroom for illusion's 60 FPS patch. |
 
 Test results by game and firmware: [COMPATIBILITY.md](COMPATIBILITY.md).

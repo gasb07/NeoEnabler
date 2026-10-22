@@ -40,6 +40,7 @@ All entries below are validated by the maintainer on firmware 13.20. Notes and f
 | inFAMOUS Second Son (01.07) | 4K checkerboard | Validated |
 | NieR:Automata (01.06) | 1440p, 1620p, 1800p | Validated |
 | Watch Dogs (01.05) | 1440p, 1620p, 1800p, Native 4K, 60 FPS, 60 FPS (triple buffering) | Validated |
+| Spyro Reignited Trilogy (01.03) | 1620p, 1800p, Native 4K | 1800p and Native 4K validated; 1620p not tested yet |
 
 ## GPU boost
 
