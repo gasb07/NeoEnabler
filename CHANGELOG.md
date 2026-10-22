@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.1
 
 - The web panel works again after rest mode without restarting NeoEnabler.
 - NeoEnabler now shows as neo-manager.elf in the process list instead of payload.elf.
