@@ -1516,6 +1516,17 @@ static void serve_icon(int fd, const char *tid) {
     free(png);
 }
 
+/* Listening socket of the web panel; -1 when the port cannot be bound. */
+static int panel_socket(void) {
+    int s = socket(AF_INET, SOCK_STREAM, 0), one = 1;
+    struct sockaddr_in addr = {0};
+    addr.sin_family = AF_INET; addr.sin_port = htons(PORT); addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (s < 0) return -1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) || listen(s, 4)) { close(s); return -1; }
+    return s;
+}
+
 /* Start time of a running process (KERN_PROC_PROC enumeration, the tested query on this target); 0 when found. */
 static int proc_start(pid_t pid, struct timeval *start) {
     int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0}; size_t n = 0; int found = 0;
@@ -1594,15 +1605,11 @@ static void set_process_name(const char *name) {
 int main(void) {
     signal(SIGPIPE, SIG_IGN);
     setvbuf(stdout, NULL, _IONBF, 0);
-    int srv = socket(AF_INET, SOCK_STREAM, 0), one = 1;
-    struct sockaddr_in addr = {0};
-    addr.sin_family = AF_INET; addr.sin_port = htons(PORT); addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    setsockopt(srv, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+    int srv = panel_socket();
     char msg[256];
-    if (srv < 0 || bind(srv, (struct sockaddr *)&addr, sizeof(addr)) || listen(srv, 4)) {
+    if (srv < 0) {
         snprintf(msg, sizeof(msg), "Web panel port %d unavailable; nothing changed", PORT);
         notify(msg); puts(msg);
-        if(srv>=0)close(srv);
         return 1;
     }
     log_line("%s started", VERSION);
@@ -1636,7 +1643,7 @@ int main(void) {
     log_state();
     patches_update();
     patches_drop_8gib(NULL);
-    time_t last_memory_poll=time(NULL);
+    time_t last_memory_poll=time(NULL),last_loop=last_memory_poll,last_reopen=0;
     long long last_mirror_ms=0;
     for (;;) {
         memory_data_tick();
@@ -1644,6 +1651,19 @@ int main(void) {
         play_tick();
         binary_tick();
         time_t now=time(NULL);
+        /* Rest mode freezes this process and leaves the panel socket dead while the process lives on. The loop runs
+           every 20 ms, so a long gap means it was frozen: open the panel socket again (a false gap only reopens it). */
+        if (srv >= 0 && (now - last_loop > 30 || now < last_loop)) {
+            log_line("panel: loop paused %ld s (rest mode); reopening the web panel socket", (long)(now - last_loop));
+            close(srv); srv = -1;
+        }
+        last_loop = now;
+        if (srv < 0) {
+            if (now != last_reopen) {
+                last_reopen = now;
+                if ((srv = panel_socket()) >= 0) log_line("panel: web panel listening again on port %d", PORT);
+            }
+        }
         { struct timespec mt; clock_gettime(CLOCK_MONOTONIC, &mt);
           long long ms = (long long)mt.tv_sec * 1000 + mt.tv_nsec / 1000000;
           if (ms - last_mirror_ms >= 250 || ms < last_mirror_ms) { log_mirror_tick(); last_mirror_ms = ms; } }
@@ -1664,8 +1684,10 @@ int main(void) {
             memory_previous_result=memory_result;last_memory_poll=now;
         }
         /* short wait: launch questions are answered between requests */
+        if(srv<0){usleep(20000);continue;}             /* launch questions and polls above keep running */
         fd_set ready;FD_ZERO(&ready);FD_SET(srv,&ready);struct timeval wait={0,pending.active?2000:20000};
         int selected=select(srv+1,&ready,NULL,NULL,&wait);
+        if(selected<0&&errno!=EINTR){log_line("panel: select failed (errno %d); reopening the web panel socket",errno);close(srv);srv=-1;continue;}
         if(selected<=0)continue;
         int fd = accept(srv, NULL, NULL);
         if (fd < 0) continue;
