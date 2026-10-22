@@ -37,6 +37,15 @@ See [validation and limitations](docs/8GB-NO-HV-1360.md): 13.20 has a Bloodborne
    repository and adds them to the ps-patch-system files (see [Game patches](#game-patches)).
 4. Open the panel and tick the patches you want for each game.
 
+With [PS5 Payload Manager](https://github.com/itsPLK/ps5-payload-manager), add this source in Settings, Payload
+Sources, to install NeoEnabler and get its updates from there:
+
+```
+https://github.com/gasb07/NeoEnabler/releases/latest/download/payloads.json
+```
+
+If you autoload it, put it after ps-patch-system in the autoload list.
+
 The **8 GiB PS4 Pro memory budget** follows patches marked "8 GiB" in the panel.
 This mode requires:
 

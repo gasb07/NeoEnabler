@@ -81,8 +81,10 @@ jobs:
           cc -O2 -Wall -Wextra -Werror -Ibuild/budget-shim-tests tests/budget_mount_hook_test.c -o /tmp/neo-budget-hook-test
           /tmp/neo-budget-hook-test
 
-      - name: Test firmware diagnostic toolkit
-        run: python3 -m unittest discover -s tests -p 'test_firmware_report.py' -v
+      - name: Test firmware diagnostic toolkit and Payload Manager source
+        run: |
+          python3 -m unittest discover -s tests -p 'test_firmware_report.py' -v
+          python3 -m unittest discover -s tests -p 'test_payloads_json.py' -v
 
       - name: Test GPU policy, settings and HTTP forms (host only)
         run: |
@@ -120,6 +122,10 @@ jobs:
       - name: Checksum
         run: cd build && sha256sum neo-manager.elf > neo-manager.elf.sha256
 
+      - name: Payload Manager source (payloads.json)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: python3 tools/payloads_json.py --repo "${GITHUB_REPOSITORY}" --date "$(date -u +%F)"
+
       - uses: actions/upload-artifact@v4
         with:
           name: neo-manager
@@ -127,6 +133,7 @@ jobs:
             build/neo-manager.elf
             build/neo-manager.elf.sha256
             build/release-notes.md
+            build/payloads.json
           if-no-files-found: error
 
   release:
@@ -147,7 +154,7 @@ jobs:
           # A tag with a suffix (v0.3.4-experimental) is published as a pre-release, so it never becomes "Latest".
           prerelease=()
           if [[ "${GITHUB_REF_NAME}" == *-* ]]; then prerelease=(--prerelease); fi
-          gh release create "${GITHUB_REF_NAME}" neo-manager.elf neo-manager.elf.sha256 "${prerelease[@]}" \
+          gh release create "${GITHUB_REF_NAME}" neo-manager.elf neo-manager.elf.sha256 payloads.json "${prerelease[@]}" \
             --repo "${GITHUB_REPOSITORY}" \
             --title "NeoEnabler ${GITHUB_REF_NAME#v}" \
             --notes-file release-notes.md
