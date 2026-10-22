@@ -1579,12 +1579,15 @@ static int previous_run_gone(void) {
 
 /* Records this run (PID, start time, launch-hook slot offset) for the next start; see previous_run_gone. */
 static void record_run(void) {
-    struct timeval me; FILE *f;
-    if (!proc_start(getpid(), &me) && (f = fopen(MANAGER_PID_FILE, "w"))) {
-        fprintf(f, "%ld %ld %ld %lx\n", (long)getpid(), (long)me.tv_sec, (long)me.tv_usec,
-                bm.attached ? (unsigned long)(bm.cave - bm.base) : 0UL);
-        fclose(f);
-    }
+    struct timeval me;
+    if (proc_start(getpid(), &me)) return;
+    char line[96];
+    int n = snprintf(line, sizeof(line), "%ld %ld %ld %lx\n", (long)getpid(), (long)me.tv_sec, (long)me.tv_usec,
+                     bm.attached ? (unsigned long)(bm.cave - bm.base) : 0UL);
+    int fd = open(MANAGER_PID_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) return;
+    if (n > 0 && write(fd, line, (size_t)n) != n) log_line("process record: write failed");
+    close(fd);
 }
 
 /* The payload loader names every payload process "payload.elf". Show the release file name instead: find the current
