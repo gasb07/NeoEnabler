@@ -6,6 +6,8 @@
 - NeoEnabler now shows as neo-manager.elf in the process list instead of payload.elf.
 - 8GB Mode is available again when NeoEnabler starts after rest mode or after being closed without Quit. Before, the
   launch hook left by the previous run made it report "BeginAppMount2 call differs" until a reboot.
+- Quitting and starting NeoEnabler again no longer runs out of launch hook space; before, 8GB Mode needed a reboot
+  after a few restarts (four on 13.60).
 
 ## 0.4.0
 

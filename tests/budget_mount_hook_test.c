@@ -49,7 +49,7 @@ static int mock_usleep(unsigned u){(void)u;return 0;}
 #define usleep mock_usleep
 #include "../src/budget_mount_hook.h"
 static void reset(uint32_t fw){
- memset(&bm,0,sizeof bm);bm_reuse_allowed=0;memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
+ memset(&bm,0,sizeof bm);bm_reuse_allowed=0;bm_reuse_slot=0;memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
  state=2;permission=7;stop_count=continue_count=continue_fail=stop_timeout=writes=readback_fail=pending_readback=cave_write_fail=change_on_stop=0;
  const bm_profile*p=bm_find(fw);assert(p);call_address=MAIN_BASE+p->call;cave_address=MAIN_BASE+p->cave;
  const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0xe8,0x18,0,0};
@@ -115,6 +115,17 @@ int main(void){
    memcpy(&c,at(old_cave+MS_WAIT_CYCLES,8),8);assert(c==999);assert(!memcmp(at(old_cave,MS_ORIGINAL),step_code,MS_ORIGINAL));
    for(size_t z=1024;z<2048;z++)assert(!at(cave_address,2048)[z]);           /* no fresh slot used */
    assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));}
+  /* After Quit the previous run's retained slot is reused when that run is gone and it is the slot it recorded;
+     otherwise (not allowed, or another slot) a fresh slot is used as before. */
+  for(int mode=0;mode<3;mode++){
+   reset(fw);assert(!bm_install(fw,1));assert(!bm_remove());uint32_t used=(uint32_t)(bm.cave-MAIN_BASE);
+   memset(&bm,0,sizeof bm);bm_reuse_allowed=mode!=0;bm_reuse_slot=mode==2?used+1024:used;
+   assert(!bm_install(fw,5)&&bm.attached&&!bm.recovered);
+   assert(bm.cave==(mode==1?MAIN_BASE+used:MAIN_BASE+used+1024));
+   assert(!memcmp(at(call_address,5),bm.redirect,5));
+   uint64_t c;memcpy(&c,at(bm.cave+MS_WAIT_CYCLES,8),8);assert(c==5);
+   assert(!bm_remove());
+  }
   /* Reuse allowed but the orphan is busy: still refused without writes to the call. */
   reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);field(MS_GATE,1);
   {unsigned char redirect[5];memcpy(redirect,bm.redirect,5);
@@ -144,5 +155,5 @@ int main(void){
   reset(fw);assert(!bm_install(fw,1));continue_fail=1;assert(bm_remove()==-101&&bm.fatal&&bm.stopped);
  }
  assert(bm_find(0x14000000)==NULL);
- puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, orphan recovery and reuse, detach races and resume failures");return 0;
+ puts("PASS: production mount hook profiles, guards, stopped writes, rollback, retained slots, orphan recovery and reuse, slot reuse after Quit, detach races and resume failures");return 0;
 }

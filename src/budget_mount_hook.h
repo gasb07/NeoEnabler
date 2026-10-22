@@ -34,8 +34,10 @@ typedef struct {
  int recovered;
 } bm_hook;
 static bm_hook bm;
-/* Set by the manager when the previous run is confirmed gone (killed or exited): its idle slot can be reused. */
+/* Set by the manager when the previous run is confirmed gone (killed, exited or quit): its idle slot can be reused.
+ * bm_reuse_slot is that run's slot offset (0 when it did not record one). */
 static int bm_reuse_allowed;
+static uint32_t bm_reuse_slot;
 static const bm_profile *bm_find(uint32_t fw){
  for(unsigned i=0;i<sizeof bm_profiles/sizeof bm_profiles[0];i++)if(bm_profiles[i].fw==fw)return &bm_profiles[i];
  return NULL;
@@ -136,6 +138,7 @@ static int bm_reserve(uint64_t *out){
  if(p->cave<p->padding||p->end<=p->cave||(p->cave&1023)||
     p->end!=((p->padding+0x3fffU)&~0x3fffU)||p->end-p->cave>8*sizeof b)
   return bm_fail("Invalid firmware reservation bounds",bm.base+p->cave);
+ uint64_t reuse=0;
  for(uint32_t off=p->cave;off+sizeof b<=p->end;off+=sizeof b){
   if(bm_read(bm.base+off,b,sizeof b))return bm_fail("Launch-hook reservation unreadable",bm.base+off);
   size_t n=0;while(n<sizeof b&&!b[n])n++;
@@ -144,7 +147,10 @@ static int bm_reserve(uint64_t *out){
    bm_padding_report();
    return bm_fail("Reservation occupied, armed or unrecognized; reboot before retrying",bm.base+off);
   }
+  /* the previous run's own retained slot: disarmed and no longer called, and that run is gone */
+  else if(bm_reuse_allowed&&off==bm_reuse_slot)reuse=bm.base+off;
  }
+ if(reuse){*out=reuse;return 0;}
  return *out?0:bm_fail("No fresh reservation remains; reboot before retrying",bm.base+p->cave);
 }
 static int bm_permissions(void){

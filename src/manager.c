@@ -1545,14 +1545,14 @@ static int proc_start(pid_t pid, struct timeval *start) {
 
 /* The previous run can stay alive without a working panel (rest mode), still owning its launch hook. Each run
    records its PID and process start time; a process with both values is that run and nothing else, even after a
-   reboot reuses the PID. Returns 1 when the previous run is confirmed gone (exited, or killed here), 0 when it is
-   unknown (no record: first run or 0.4.0 and older). Records this run afterwards. */
+   reboot reuses the PID. Returns 1 when the previous run is confirmed gone (exited, quit, or killed here), 0 when
+   it is unknown (no record: first run or 0.4.0 and older), and passes on the slot it recorded. */
 #define MANAGER_PID_FILE NEO_LOG_DIR "/manager.pid"
 static int previous_run_gone(void) {
-    int gone = 0; long pid = 0, sec = 0, usec = 0;
+    int gone = 0; long pid = 0, sec = 0, usec = 0; unsigned long slot = 0;
     FILE *f = fopen(MANAGER_PID_FILE, "r");
     if (f) {
-        if (fscanf(f, "%ld %ld %ld", &pid, &sec, &usec) == 3 && pid > 0 && pid != getpid()) {
+        if (fscanf(f, "%ld %ld %ld %lx", &pid, &sec, &usec, &slot) >= 3 && pid > 0 && pid != getpid()) {
             struct timeval st;
             int r = proc_start((pid_t)pid, &st);
             if (r == 1 || (!r && (st.tv_sec != sec || st.tv_usec != usec))) {
@@ -1573,12 +1573,18 @@ static int previous_run_gone(void) {
         }
         fclose(f);
     }
-    struct timeval me;
+    if (gone) bm_reuse_slot = (uint32_t)slot;
+    return gone;
+}
+
+/* Records this run (PID, start time, launch-hook slot offset) for the next start; see previous_run_gone. */
+static void record_run(void) {
+    struct timeval me; FILE *f;
     if (!proc_start(getpid(), &me) && (f = fopen(MANAGER_PID_FILE, "w"))) {
-        fprintf(f, "%ld %ld %ld\n", (long)getpid(), (long)me.tv_sec, (long)me.tv_usec);
+        fprintf(f, "%ld %ld %ld %lx\n", (long)getpid(), (long)me.tv_sec, (long)me.tv_usec,
+                bm.attached ? (unsigned long)(bm.cave - bm.base) : 0UL);
         fclose(f);
     }
-    return gone;
 }
 
 /* The payload loader names every payload process "payload.elf". Show the release file name instead: find the current
@@ -1625,6 +1631,7 @@ int main(void) {
              (unsigned long long)tsc_hz, LAUNCH_WAIT_S);
     bm_reuse_allowed = previous_run_gone();
     memory_init(fw_raw_version(), tsc_hz * 3);
+    record_run();
     memory_wants8 = memory_launch_wants;
     memory_refused8 = memory_launch_refused;
     if (bm.attached && !memory_data_blocked && bm_field(MS_ENABLED, 1)) {
