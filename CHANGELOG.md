@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Each release has a PS5 Payload Manager source: add
+  `https://github.com/gasb07/NeoEnabler/releases/latest/download/payloads.json` in its Payload Sources to install
+  NeoEnabler and get its updates there.
+
 ## 0.4.1
 
 - The web panel works again after rest mode without restarting NeoEnabler.
