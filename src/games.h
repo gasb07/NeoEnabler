@@ -15,6 +15,9 @@
 #ifndef APP_DIR
 #define APP_DIR "/user/app"
 #endif
+#ifndef EXT_DRIVES
+#define EXT_DRIVES "/mnt/ext0", "/mnt/ext1"   /* mount points of extended storage */
+#endif
 #ifndef PATCH_DIR
 #define PATCH_DIR "/user/patch"
 #endif
@@ -35,13 +38,25 @@ static int game_tid(const char *s) {
            strspn(s + 4, "0123456789") == 5;
 }
 
+/* 1 when the game is on a mounted extended storage (<drive>/user/app/<title ID>). The system keeps the appmeta in
+   external/ after the game is moved or deleted, so that folder alone does not mean the game is there. */
+static int game_on_ext(const char *tid) {
+    static const char *const drives[] = {EXT_DRIVES};
+    char path[96]; struct stat st;
+    for (size_t i = 0; i < sizeof drives / sizeof *drives; i++) {
+        snprintf(path, sizeof path, "%s/user/app/%.9s", drives[i], tid);
+        if (!stat(path, &st) && S_ISDIR(st.st_mode)) return 1;
+    }
+    return 0;
+}
+
 /* Appmeta param.sfo of an installed game, from the internal folder or, for a game on extended storage, from
    external/; malloc'd, NULL when neither is readable. path (when not NULL) gets the file read or tried last. */
 static char *game_sfo(const char *tid, size_t *n, char *path, size_t path_cap) {
     char p[96];
     snprintf(p, sizeof p, APPMETA_DIR "/%.9s/param.sfo", tid);
     char *sfo = ps_read(p, 64 << 10, n);
-    if (!sfo) {
+    if (!sfo && game_on_ext(tid)) {
         snprintf(p, sizeof p, APPMETA_EXTERNAL "/%.9s/param.sfo", tid);
         sfo = ps_read(p, 64 << 10, n);
     }
@@ -133,7 +148,7 @@ static int game_cmp(const void *a, const void *b) {
 }
 
 /* Installed games that have at least one patch needing Pro mode for their version, sorted by name. Games on
-   extended storage have their appmeta in external/. */
+   extended storage have their appmeta in external/ (listed only while the game is on a mounted drive). */
 static game_t *games_scan(int *count) {
     *count = 0;
     int cap = 32, n = 0; struct dirent *e;
@@ -147,7 +162,7 @@ static game_t *games_scan(int *count) {
             if (!game_tid(e->d_name)) continue;
             int seen = 0;
             for (int i = 0; i < n && !seen; i++) seen = !strncmp(g[i].tid, e->d_name, 9);
-            if (seen) continue;
+            if (seen || (k && !game_on_ext(e->d_name))) continue;
             game_t x = {0};
             snprintf(x.tid, sizeof x.tid, "%.9s", e->d_name);
             char path[96]; struct stat st;

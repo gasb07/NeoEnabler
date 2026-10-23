@@ -266,7 +266,7 @@ static void game_name(const char *title_id, char *out, size_t cap) {
     out[0] = 0;
     snprintf(path, sizeof(path), "/system_data/priv/appmeta/%.9s/param.sfo", title_id);
     FILE *f = fopen(path, "rb");
-    if (!f) {
+    if (!f && game_on_ext(title_id)) {
         snprintf(path, sizeof(path), "/system_data/priv/appmeta/external/%.9s/param.sfo", title_id);
         f = fopen(path, "rb");
     }
@@ -1516,7 +1516,7 @@ static void serve_icon(int fd, const char *tid) {
     if (!game_tid(tid)) { reply(fd, "404 Not Found", "text/plain", "not found\n"); return; }
     snprintf(path, sizeof path, "/user/appmeta/%s/icon0.png", tid);
     char *png = ps_read(path, 4 << 20, &n);
-    if (!png) {   /* game on extended storage */
+    if (!png && game_on_ext(tid)) {   /* game on extended storage */
         snprintf(path, sizeof path, "/user/appmeta/external/%s/icon0.png", tid);
         png = ps_read(path, 4 << 20, &n);
     }

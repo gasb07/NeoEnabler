@@ -14,6 +14,7 @@
 #define PS_BACKUP_ROOT ROOT "/backup"
 #define APPMETA_DIR ROOT "/appmeta"
 #define APP_DIR ROOT "/app"
+#define EXT_DRIVES ROOT "/ext0", ROOT "/ext1"
 #define PATCH_DIR ROOT "/patch"
 #define PS_NO_HTTP 1
 
@@ -191,12 +192,19 @@ int main(int argc, char **argv) {
     for (int i = 0; i < ng; i++) if (!strcmp(gs[i].tid, "CUSA99996")) v = &gs[i];
     assert(v && !strcmp(v->game_ver, "01.00") && !strcmp(v->update_ver, "01.05"));
     games_free(gs, ng);
-    /* A game on extended storage: its appmeta is in external/, and it is found and listed once. */
+    /* A game on extended storage: its appmeta is in external/. Without its app folder on a mounted drive (the system
+       keeps external/ after the game is moved or deleted) it is not found; with it, it is found and listed once. */
     install_game("CUSA00054", "Mad Max", "01.06", argv[1], "MadMax_CUSA00054.xml");
     assert(!system("mkdir -p " APPMETA_EXTERNAL " && mv " APPMETA_DIR "/CUSA00054 " APPMETA_EXTERNAL "/"));
+    assert(game_info("CUSA00054", name, sizeof name, ver, sizeof ver));
+    int ne, found = 0; game_t *ge = games_scan(&ne);
+    for (int i = 0; i < ne; i++) found += !strcmp(ge[i].tid, "CUSA00054");
+    assert(found == 0);
+    games_free(ge, ne);
+    assert(!system("mkdir -p " ROOT "/ext1/user/app/CUSA00054"));
     assert(!game_info("CUSA00054", name, sizeof name, ver, sizeof ver));
     assert(!strcmp(name, "Mad Max") && !strcmp(ver, "01.06"));
-    int ne, found = 0; game_t *ge = games_scan(&ne);
+    ge = games_scan(&ne);
     for (int i = 0; i < ne; i++) found += !strcmp(ge[i].tid, "CUSA00054");
     assert(found == 1);
     games_free(ge, ne);
