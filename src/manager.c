@@ -1528,6 +1528,18 @@ static int panel_socket(void) {
     return s;
 }
 
+/* 0 when a connection to the panel port on this console is refused: the listening socket is dead (rest mode can leave
+   it so while this process keeps running). The probe connection is accepted and answered like any empty request. */
+static int panel_alive(void) {
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) return 1;
+    struct sockaddr_in addr = {0};
+    addr.sin_family = AF_INET; addr.sin_port = htons(PORT); addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    int alive = !connect(s, (struct sockaddr *)&addr, sizeof(addr)) || errno != ECONNREFUSED;
+    close(s);
+    return alive;
+}
+
 /* Start time of a running process (KERN_PROC_PROC enumeration, the tested query on this target); 0 when found. */
 static int proc_start(pid_t pid, struct timeval *start) {
     int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0}; size_t n = 0; int found = 0;
@@ -1654,7 +1666,7 @@ int main(void) {
     log_state();
     patches_update();
     patches_drop_8gib(NULL);
-    time_t last_memory_poll=time(NULL),last_loop=last_memory_poll,last_reopen=0;
+    time_t last_memory_poll=time(NULL),last_loop=last_memory_poll,last_reopen=0,last_probe=last_memory_poll;
     long long last_mirror_ms=0;
     for (;;) {
         memory_data_tick();
@@ -1670,6 +1682,13 @@ int main(void) {
             close(srv); srv = -1;
         }
         last_loop = now;
+        if (srv >= 0 && (now - last_probe >= 10 || now < last_probe)) {
+            last_probe = now;
+            if (!panel_alive()) {
+                log_line("panel: port %d refuses connections; reopening the web panel socket", PORT);
+                close(srv); srv = -1;
+            }
+        }
         if (srv < 0) {
             if (now != last_reopen) {
                 last_reopen = now;

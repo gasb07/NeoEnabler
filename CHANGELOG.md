@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- The web panel comes back after rest mode also when NeoEnabler kept running through it. NeoEnabler now checks
+  every 10 seconds that the panel port accepts connections and opens it again when it does not.
+
 ## 0.5.0
 
 - Patch entries for a module the game loads itself (AppElf ending in .prx or .sprx) are now applied. The patch
