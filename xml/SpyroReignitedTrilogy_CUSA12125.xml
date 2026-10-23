@@ -2,6 +2,7 @@
 <Patch>
   <TitleID>
     <ID>CUSA12125</ID>
+    <ID>CUSA12085</ID>
   </TitleID>
   <Metadata Title="Spyro Reignited Trilogy" Name="1620p (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output with 2880x1620 render in PS4 Pro (NEO) mode (the game renders 2560x1440 into a 1920x1080 output by default). Needs 2160p video output. Enable only one resolution entry. Requires NEO Enabler." Author="Shane O'Reilly" PatchVer="1.0" AppVer="01.03" AppElf="eboot.bin">
     <PatchList>
