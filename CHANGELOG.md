@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.1
 
 - The web panel comes back after rest mode also when NeoEnabler kept running through it. NeoEnabler now checks
   every 10 seconds that the panel port accepts connections and opens it again when it does not.
