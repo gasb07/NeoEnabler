@@ -259,12 +259,17 @@ static int install_launcher(void) {
     return err ? -3 : 1;
 }
 
-/* Game name from the TITLE key of /system_data/priv/appmeta/<title id>/param.sfo; empty when not found. */
+/* Game name from the TITLE key of /system_data/priv/appmeta/<title id>/param.sfo (external/<title id> for a game on
+   extended storage); empty when not found. */
 static void game_name(const char *title_id, char *out, size_t cap) {
     char path[64]; unsigned char sfo[8192]; size_t n;
     out[0] = 0;
     snprintf(path, sizeof(path), "/system_data/priv/appmeta/%.9s/param.sfo", title_id);
     FILE *f = fopen(path, "rb");
+    if (!f && game_on_ext(title_id)) {
+        snprintf(path, sizeof(path), "/system_data/priv/appmeta/external/%.9s/param.sfo", title_id);
+        f = fopen(path, "rb");
+    }
     if (!f) return;
     n = fread(sfo, 1, sizeof(sfo), f); fclose(f);
     if (n < 20 || memcmp(sfo, "\0PSF", 4)) return;
@@ -1387,10 +1392,9 @@ static void launch_attach(int ask) {
    app info around the known offsets when the table offset is not the one found, so a report shows the layout. */
 static uint32_t launch_attr_offset(const char *tid, uint64_t info) {
     static unsigned char buf[AD_INFO_SIZE];
-    char path[64]; size_t n = 0;
+    char path[96]; size_t n = 0;
     uint32_t attr, attr2 = 0;
-    snprintf(path, sizeof path, APPMETA_DIR "/%.9s/param.sfo", tid);
-    char *sfo = ps_read(path, 64 << 10, &n);
+    char *sfo = game_sfo(tid, &n, path, sizeof path);
     int has_attr = sfo && !ad_sfo_int((unsigned char *)sfo, n, "ATTRIBUTE", &attr);
     int has_attr2 = sfo && !ad_sfo_int((unsigned char *)sfo, n, "ATTRIBUTE2", &attr2);
     free(sfo);
@@ -1512,6 +1516,10 @@ static void serve_icon(int fd, const char *tid) {
     if (!game_tid(tid)) { reply(fd, "404 Not Found", "text/plain", "not found\n"); return; }
     snprintf(path, sizeof path, "/user/appmeta/%s/icon0.png", tid);
     char *png = ps_read(path, 4 << 20, &n);
+    if (!png && game_on_ext(tid)) {   /* game on extended storage */
+        snprintf(path, sizeof path, "/user/appmeta/external/%s/icon0.png", tid);
+        png = ps_read(path, 4 << 20, &n);
+    }
     if (!png) { reply(fd, "404 Not Found", "text/plain", "not found\n"); return; }
     reply_bytes(fd, "200 OK", "image/png", "max-age=86400", png, n);
     free(png);
