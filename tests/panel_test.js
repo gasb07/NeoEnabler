@@ -25,7 +25,7 @@ vm.runInNewContext(fs.readFileSync('assets/panel.js', 'utf8'), {
     }
 });
 (async () => {
-    for (const mhz of ['2150', '2200']) {
+    for (const mhz of ['2150', '2350']) {
         // A replaced document registers fresh listeners.
         listeners.DOMContentLoaded();
         const form = {method: 'post', fields: [['mhz', mhz]], action: '/'};
@@ -36,7 +36,7 @@ vm.runInNewContext(fs.readFileSync('assets/panel.js', 'utf8'), {
         await new Promise(resolve => setImmediate(resolve));
     }
     assert.deepEqual(calls.filter(Array.isArray), [
-        ['/gpu/enable', 'POST', 'mhz=2150'], ['/gpu/enable', 'POST', 'mhz=2200']
+        ['/gpu/enable', 'POST', 'mhz=2150'], ['/gpu/enable', 'POST', 'mhz=2350']
     ]);
     assert.equal(calls.filter(x => x === 'open').length, 2);
     listeners.click({target: {closest: s => s === 'nav a' ? {href: '/gpu'} : null}, preventDefault() {}});

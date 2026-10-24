@@ -8,8 +8,10 @@
 #include <string.h>
 #include <stdlib.h>
 #define GPU_MIN_MHZ 1800U
-#define GPU_MAX_MHZ 2200U
-#define GPU_DEFAULT_MHZ 2200U
+#define GPU_MAX_MHZ 2350U      /* was 2200U; extended for PS5 Pro testing */
+#define GPU_DEFAULT_MHZ 2200U  /* default stays at the tested value */
+#define GPU_MAX_RECOVERIES 10U /* automatic re-applies allowed before giving up */
+#define GPU_STABLE_POLLS 10U   /* polls above 1800 MHz before the recovery budget is refunded */
 static int gpu_target_valid(unsigned mhz){return mhz>=GPU_MIN_MHZ&&mhz<=GPU_MAX_MHZ&&mhz%50==0;}
 #ifndef NEO_GPU_TEST
 #include <fcntl.h>
@@ -34,7 +36,7 @@ static int gpu_backend_set(unsigned mhz){
 #endif
 typedef struct{
  int enabled,applied,owner_pid,baseline_valid,blocked,restore_pending,reading_valid;
- unsigned target,baseline,actual,actions,reset_samples,recoveries;
+ unsigned target,baseline,actual,actions,reset_samples,recoveries,stable_samples;
  char message[192];
 } gpu_control;
 static gpu_control gpu={.target=GPU_DEFAULT_MHZ,.message="GPU boost disabled"};
@@ -64,7 +66,7 @@ static void gpu_owner_changed(int pid){
   /* A launch/exit changes the system power policy. Do not replay the old game's
    * baseline over the new system policy; take a new baseline for the new game. */
   gpu.baseline_valid=0;gpu.applied=0;gpu.owner_pid=0;gpu.blocked=0;
-  gpu.reset_samples=0;gpu.recoveries=0;
+  gpu.reset_samples=0;gpu.recoveries=0;gpu.stable_samples=0;
  }
 }
 static int gpu_poll(int pid){
@@ -85,19 +87,28 @@ static int gpu_poll(int pid){
  }
  /* Two consecutive policy polls at exactly the standard 1800 MHz profile.
   * This is a reset heuristic, not a foreground or thermal-state measurement.
-  * At most three automatic recoveries per game/manual enable; never retry a
+  * At most GPU_MAX_RECOVERIES automatic recoveries per game/manual enable; never retry a
   * failed SET, failed read, or ambiguous process scan. */
  if(gpu.applied&&gpu.target>1800&&gpu.actual==1800){
+  gpu.stable_samples=0;
   if(++gpu.reset_samples>=2){
    gpu.reset_samples=0;
-   if(gpu.recoveries>=3){
+   if(gpu.recoveries>=GPU_MAX_RECOVERIES){
     gpu.blocked=1;
     snprintf(gpu.message,sizeof gpu.message,"Repeated 1800 MHz resets; automatic recovery stopped. Check game/system state before retrying Enable.");
     return -2;
    }
    gpu.recoveries++;gpu.applied=0;
   }
- }else gpu.reset_samples=0;
+ }else{
+  gpu.reset_samples=0;
+  /* Boost held for a while: earlier resets were separate events (for example
+   * dashboard visits), so give the recovery budget back. Rapid back-to-back
+   * resets never reach GPU_STABLE_POLLS and still hit the limit above. */
+  if(gpu.applied&&gpu.actual>1800){
+   if(++gpu.stable_samples>=GPU_STABLE_POLLS){gpu.recoveries=0;gpu.stable_samples=0;}
+  }else gpu.stable_samples=0;
+ }
  if(!gpu.applied){
   if(!gpu.baseline_valid){gpu.baseline=gpu.actual;gpu.baseline_valid=1;gpu.owner_pid=pid;}
   gpu.actions++;
@@ -117,7 +128,7 @@ static int gpu_request(int enable,unsigned mhz,int pid){
  gpu_owner_changed(pid);
  if(!enable){gpu.enabled=0;return gpu_restore();}
  if(gpu.restore_pending){snprintf(gpu.message,sizeof gpu.message,"Retry Disable to restore the previous clock first");return -3;}
- gpu.enabled=1;gpu.target=mhz;gpu.blocked=0;gpu.applied=0;gpu.reset_samples=0;gpu.recoveries=0;
+ gpu.enabled=1;gpu.target=mhz;gpu.blocked=0;gpu.applied=0;gpu.reset_samples=0;gpu.recoveries=0;gpu.stable_samples=0;
  return gpu_poll(pid);
 }
 static const char*gpu_state_text(void){

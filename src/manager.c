@@ -870,7 +870,7 @@ static void serve_gpu_page(int fd, const char *msg) {
         "<input type=range id=gpu-target name=mhz min=%u max=%u step=50 value=%u%s>"
         "<div><button formaction=/gpu/enable%s>Apply boost</button>"
         "<button formaction=/gpu/disable%s>Disable boost</button></div></form>"
-        "<p class=notice>Maximum allowed target: 2200 MHz. Short gameplay testing has passed. "
+        "<p class=notice>Use 2200 if on Base PS5. Use 2350 if on PS5 PRO. More than 2200 on Base PS5 will not work. "
         "Actual frequency may be lower. Power and thermal controls remain active.</p>"
         "<small>Applies to PS4 games in base or NEO mode. A saved target is requested on the next PS4 launch. "
         "Disable restores the clock captured for the running game. Use Save Settings to keep your choice.</small>"
@@ -1802,7 +1802,7 @@ int main(void) {
             if (enable && !gpu_available()) {     /* disable stays allowed: it restores the captured clock */
                 reply(fd, "404 Not Found", "text/plain", "GPU clock control is not available on this console\n");
             } else if (enable && gpu_form_mhz(form_body, &target) != 1) {
-                reply(fd, "400 Bad Request", "text/plain", "Choose a GPU target from 1800 to 2200 MHz in 50 MHz steps\n");
+                reply(fd, "400 Bad Request", "text/plain", "Choose a GPU target from 1800 to 2350 MHz in 50 MHz steps\n");
             } else {
                 int rc = gpu_request(enable, target, gpu_game_pid());
                 if (rc == -1 && enable) snprintf(gpu.message, sizeof gpu.message, "GPU clock request unavailable or failed; check firmware and SMU access");
