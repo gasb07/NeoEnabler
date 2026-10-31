@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA09407</ID>
+    <ID>CUSA09263</ID>
+    <ID>CUSA09261</ID>
+  </TitleID>
+  <Metadata Title="Devil May Cry HD Collection (DMC1)" Name="DMC1 - Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="Requires NEO Enabler." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="dmc1.elf">
+    <PatchList>
+        <Line Type="bytes" Address="0x0041adb1" Value="000F7008"/>
+        <Line Type="bytes" Address="0x0041b0d0" Value="41b8000f000041b970080000b8000f00009090909090909090909090"/>
+        <Line Type="bytes" Address="0x00879438" Value="000F0000"/>
+        <Line Type="bytes" Address="0x0087943c" Value="70080000"/>
+        <Line Type="bytes" Address="0x00879650" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00879654" Value="70080000"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Devil May Cry HD Collection (DMC2)" Name="DMC2 - Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="Requires NEO Enabler." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="dmc2.elf">
+    <PatchList>
+        <Line Type="bytes" Address="0x0041b86d" Value="000F"/>
+        <Line Type="bytes" Address="0x0041b878" Value="7008"/>
+        <Line Type="bytes" Address="0x0041bd53" Value="41b8000f000041b970080000b8000f00009090909090909090909090"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Devil May Cry HD Collection (DMC3)" Name="DMC3 - Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="Requires NEO Enabler." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="dmc3.elf">
+    <PatchList>
+        <Line Type="bytes" Address="0x00416a7c" Value="41b8000f000041b970080000b8000f00009090909090909090909090"/>
+        <Line Type="bytes" Address="0x00416acd" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416af9" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416b17" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416b35" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416b53" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416b71" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416cd2" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416cf6" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416d0c" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416ad2" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416afe" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416b1c" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416b3a" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416b58" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416b76" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416cd7" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416cfb" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416d11" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416bf3" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00416bf8" Value="70080000"/>
+        <Line Type="bytes" Address="0x00885820" Value="000F0000"/>
+        <Line Type="bytes" Address="0x00885824" Value="70080000"/>
+        <Line Type="bytes" Address="0x00416b92" Value="80070000"/>
+        <Line Type="bytes" Address="0x00416bb3" Value="80070000"/>
+        <Line Type="bytes" Address="0x00416b97" Value="38040000"/>
+        <Line Type="bytes" Address="0x00416bb8" Value="38040000"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Devil May Cry HD Collection (DMC3)" Name="DMC3 120FPS" NeoRequires="120hz" Note="Normal = 1.0 speed | Turbo = 1.25 speed" Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="dmc3.elf">
+    <PatchList>
+        <Line Type="bytes" Address="0x007808E2" Value="0000003f"/>
+        <Line Type="bytes" Address="0x007819DA" Value="0000003f"/>
+        <Line Type="bytes" Address="0x006AD62E" Value="0fb60574465700c1e015050000003f4189066690"/>
+        <Line Type="bytes" Address="0x006B110C" Value="0fb605960b5700c1e015050000003f4189066690"/>
+        <Line Type="bytes" Address="0x004286A5" Value="78"/>
+        <Line Type="bytes" Address="0x004286B1" Value="78"/>
+    </PatchList>
+  </Metadata>
+</Patch>

@@ -1,0 +1,40 @@
+name: Update NeoEnabler entry
+
+on:
+  schedule:
+    - cron: "0 * * * *"      # every hour
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest NeoEnabler release
+        id: rel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/gasb07/NeoEnabler/releases/latest > release.json
+          echo "tag=$(jq -r .tag_name release.json)" >> "$GITHUB_OUTPUT"
+          echo "url=$(jq -r '.assets[] | select(.name=="neo-manager.elf") | .browser_download_url' release.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Rewrite neoenabler.json
+        run: |
+          jq --arg v "${{ steps.rel.outputs.tag }}" --arg u "${{ steps.rel.outputs.url }}" '
+            .payloads[0].version = $v | .payloads[0].url = $u
+          ' neoenabler.json > tmp.json && mv tmp.json neoenabler.json
+
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add neoenabler.json
+            git commit -m "NeoEnabler ${{ steps.rel.outputs.tag }}"
+            git push
+          fi

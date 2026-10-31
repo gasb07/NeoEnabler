@@ -367,6 +367,27 @@ static void html_escape(const char *s, char *out, size_t cap) {
     out[o] = 0;
 }
 
+/* A process that can be a PS4 game: the main eboot.bin, or the game's own executable when the title starts one
+   (collections such as the Devil May Cry HD Collection run dmc1.elf, dmc2.elf and dmc3.elf from a launcher).
+   Only the name is tested here; callers still require an app info with a title ID and a PS4 graphics driver. */
+static int game_proc_name(const char *comm) {
+    size_t l = strlen(comm);
+    return !strcmp(comm, "eboot.bin") || (l > 4 && !strcmp(comm + l - 4, ".elf"));
+}
+
+/* A process counts as a PS4 game when it has a known game executable name, or, whatever its name, when it has an app
+   info with a title ID and has loaded a PS4 graphics driver (base, Pro or Compat1). The second test finds games
+   started from a launcher under another executable name. System processes (Sce*) are skipped without a query. */
+static int game_proc(const struct kinfo_proc *ki) {
+    if (game_proc_name(ki->ki_comm)) return 1;
+    if (!strncmp(ki->ki_comm, "Sce", 3)) return 0;
+    app_info_t info = {0}; uint32_t h = 0;
+    if (sceKernelGetAppInfo(ki->ki_pid, &info) || !info.title_id[0]) return 0;
+    return !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverForNeoMode.sprx", &h) ||
+           !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriver.sprx", &h) ||
+           !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverCompat1.sprx", &h);
+}
+
 /* Mode of the last open PS4 game listed by games_text: -1 none, 0 base, 1 PS4 Pro. */
 static int running_pro = -1;
 
@@ -381,7 +402,7 @@ static int games_text(char *out, size_t cap, int html) {
     for (size_t off = 0; off + sizeof(struct kinfo_proc) <= n;) {
         struct kinfo_proc *ki = (void *)(buf + off);
         if (ki->ki_structsize < (int)sizeof(*ki) || (size_t)ki->ki_structsize > n - off) break;
-        if (!strcmp(ki->ki_comm, "eboot.bin")) {
+        if (game_proc(ki)) {
             app_info_t info = {0}; uint32_t h = 0;
             if (!sceKernelGetAppInfo(ki->ki_pid, &info) && info.title_id[0]) {
                 /* The driver name gives the mode when the game loads a mode-specific driver. Some games (The Order: 1886 on 13.20) load
@@ -396,6 +417,13 @@ static int games_text(char *out, size_t cap, int html) {
                 if (ps4 && len < (int)cap - 400) {
                     char name[128], esc[384];
                     game_name(info.title_id, name, sizeof(name));
+                    /* A title that starts its own executables (DMC HD Collection: dmc1/2/3.elf) shares one title ID and one
+                       name; show which executable is running. */
+                    if (strcmp(ki->ki_comm, "eboot.bin")) {
+                        size_t l = strlen(name), c = strlen(ki->ki_comm);
+                        if (c > 4 && !strcmp(ki->ki_comm + c - 4, ".elf")) c -= 4;   /* dmc3.elf -> dmc3 */
+                        snprintf(name + l, sizeof(name) - l, "%s(%.*s)", l ? " " : "", (int)(c < 40 ? c : 40), ki->ki_comm);
+                    }
                     if (html) html_escape(name, esc, sizeof(esc)); else snprintf(esc, sizeof(esc), "%s", name);
                     games++;
                     char memory[80]="DMEM query unavailable";int dmib[24];size_t dc=23,bytes=8;uint64_t dmem=0;
@@ -427,7 +455,7 @@ static int open_game(char tid[10]) {
         struct kinfo_proc *ki = (void *)(buf + off);
         if (ki->ki_structsize < (int)sizeof(*ki) || (size_t)ki->ki_structsize > n - off) break;
         app_info_t info = {0};
-        if (!strcmp(ki->ki_comm, "eboot.bin") && !sceKernelGetAppInfo(ki->ki_pid, &info) && info.title_id[0]) {
+        if (game_proc(ki) && !sceKernelGetAppInfo(ki->ki_pid, &info) && info.title_id[0]) {
             snprintf(tid, 10, "%.9s", info.title_id);
             found = 1;
         }
@@ -492,28 +520,43 @@ static void play_tick(void) {
     }
 }
 
-/* A unique PS4 eboot is the only automatic clock target. Native games, mixed
- * game processes, failed scans and launcher processes never trigger boost. */
+/* A unique PS4 game is the only automatic clock target: its eboot.bin, or its own .elf when a launcher eboot.bin
+ * starts it (Devil May Cry HD Collection). The launcher and the game it starts share one title ID, and then the
+ * .elf is the target. Native games, game processes of different titles, failed scans never trigger boost. */
 static int gpu_game_pid(void) {
     int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0}; size_t n = 0;
     if (sysctl(mib, 4, NULL, &n, NULL, 0) || !n || n > 32 * 1024 * 1024) return -1;
     unsigned char *buf = malloc(n);
     if (!buf) return -1;
     if (sysctl(mib, 4, buf, &n, NULL, 0)) { free(buf); return -1; }
-    int candidate = 0, count = 0, valid = 1; size_t off = 0;
+    int candidate = 0, candidate_elf = 0, valid = 1; size_t off = 0;
+    char first[10] = "";
     while (off + sizeof(struct kinfo_proc) <= n) {
         struct kinfo_proc *ki = (void *)(buf + off);
         if (ki->ki_structsize < (int)sizeof(*ki) || (size_t)ki->ki_structsize > n - off) { valid = 0; break; }
-        if (!strcmp(ki->ki_comm, "eboot.bin")) {
-            app_info_t info = {0}; uint32_t h = 0; count++;
-            if (sceKernelGetAppInfo(ki->ki_pid, &info) || !info.title_id[0]) valid = 0;
-            else if (!kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverForNeoMode.sprx", &h) ||
-                     !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriver.sprx", &h) ||
-                     !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverCompat1.sprx", &h)) candidate = ki->ki_pid;
+        if (ki->ki_pid != getpid() && game_proc(ki)) {
+            app_info_t info = {0}; uint32_t h = 0;
+            int is_elf = strcmp(ki->ki_comm, "eboot.bin") != 0;
+            int have_info = !sceKernelGetAppInfo(ki->ki_pid, &info) && info.title_id[0];
+            /* Only a process with a title ID and a PS4 graphics driver counts. Payloads (payload.elf, kstuff.elf, ...)
+             * and system .elf processes (NPXS titles) match the name test but are not games and must not take part
+             * in the title comparison below. */
+            int ps4 = have_info &&
+                (!kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverForNeoMode.sprx", &h) ||
+                 !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriver.sprx", &h) ||
+                 !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverCompat1.sprx", &h));
+            if (ps4) {
+                if (!first[0]) snprintf(first, sizeof first, "%.9s", info.title_id);
+                else if (strncmp(first, info.title_id, 9)) valid = 0;   /* two different titles open */
+                if (!candidate || (is_elf && !candidate_elf)) { candidate = ki->ki_pid; candidate_elf = is_elf; }
+                else if (is_elf == candidate_elf) valid = 0;            /* two game processes of the same kind */
+            } else if (!is_elf && !have_info) {
+                valid = 0;      /* an eboot.bin we cannot identify is still ambiguous */
+            }
         }
         off += (size_t)ki->ki_structsize;
     }
-    if (off != n || count > 1) valid = 0;
+    if (off != n) valid = 0;
     free(buf); return valid ? candidate : -1;
 }
 
@@ -1097,7 +1140,7 @@ static size_t generate_diagnostic(char *buf, size_t cap) {
                 while (off + sizeof(struct kinfo_proc) <= n) {
                     struct kinfo_proc *k = (void *)(b + off);
                     if (k->ki_structsize < (int)sizeof(*k) || (size_t)k->ki_structsize > n - off) break;
-                    if (!strcmp(k->ki_comm, "eboot.bin") && game_count < 16 && len + 1024 < cap) {
+                    if (game_proc(k) && game_count < 16 && len + 1024 < cap) {
                         app_info_t app = {0}; errno = 0;
                         int app_rc = sceKernelGetAppInfo(k->ki_pid, &app); int app_error = errno;
                         char title[11] = {0}; if (!app_rc) memcpy(title, app.title_id, 10);
