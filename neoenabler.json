@@ -4,9 +4,9 @@
     {
       "name": "NeoEnabler",
       "filename": "neo-manager.elf",
-      "url": "https://github.com/gasb07/NeoEnabler/releases/download/v0.6.0/neo-manager.elf",
+      "url": "https://github.com/gasb07/NeoEnabler/releases/download/v0.6.1/neo-manager.elf",
       "description": "Starts PS4 games in PS4 Pro mode with per-game patches (up to native 4K). Load ps-patch-system first, then this, after every boot.",
-      "version": "v0.6.0",
+      "version": "v0.6.1",
       "category": "Utilities",
       "details_url": "https://raw.githubusercontent.com/gasb07/NeoEnabler/main/README.md",
       "source": "https://github.com/gasb07/NeoEnabler",
