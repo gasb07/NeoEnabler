@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA05794</ID>
+    <ID>CUSA05720</ID>
+    <ID>CUSA05716</ID>
+    <ID>CUSA06059</ID>
+    <ID>CUSA06069</ID>
+  </TitleID>
+  <Metadata Title="Rise of the Tomb Raider" Name="4K 60 FPS (PS4 Pro mode)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x0088aac2" Value="000f0000" />
+      <Line Type="bytes" Address="0x0088aacd" Value="70080000" />
+      <Line Type="bytes" Address="0x0088e288" Value="000f0000" />
+      <Line Type="bytes" Address="0x0088e2a6" Value="70080000" />
+      <Line Type="bytes" Address="0x0088f243" Value="000f0000" />
+      <Line Type="bytes" Address="0x0088f27c" Value="70080000" />
+      <Line Type="bytes" Address="0x0089121d" Value="000f0000" />
+      <Line Type="bytes" Address="0x0089124d" Value="70080000" />
+      <Line Type="bytes" Address="0x00897cb0" Value="ba02000000909090" />
+      <Line Type="bytes" Address="0x00897cbe" Value="909090" />
+      <Line Type="bytes" Address="0x00897e0e" Value="8d0c00" />
+      <Line Type="bytes" Address="0x00897e11" Value="01c0909090909090" />
+      <Line Type="bytes" Address="0x008a7a45" Value="70080000" />
+      <Line Type="bytes" Address="0x008a7aba" Value="000f0000" />
+      <Line Type="bytes" Address="0x008a7abf" Value="70080000" />
+      <Line Type="bytes" Address="0x008a7b94" Value="000f0000" />
+      <Line Type="bytes" Address="0x008a7b99" Value="70080000" />
+      <Line Type="bytes" Address="0x008a7e9a" Value="70080000" />
+      <Line Type="bytes" Address="0x008a7f0d" Value="000f0000" />
+      <Line Type="bytes" Address="0x008a7f18" Value="70080000" />
+      <Line Type="bytes" Address="0x008a8076" Value="000f0000" />
+      <Line Type="bytes" Address="0x008a8082" Value="70080000" />
+      <Line Type="bytes" Address="0x008a8d31" Value="be01000000" />
+      <Line Type="bytes" Address="0x008a8d81" Value="000f0000" />
+      <Line Type="bytes" Address="0x008a8de2" Value="70080000" />
+      <Line Type="bytes" Address="0x008a8c6d" Value="70080000" />
+      <Line Type="bytes" Address="0x015da210" Value="b801000000c3" />
+      <Line Type="bytes" Address="0x0088e26c" Value="31f6" />
+      <Line Type="bytes" Address="0x00887a0b" Value="00110000" />
+      <Line Type="bytes" Address="0x00897d6c" Value="00000064" />
+      <Line Type="bytes" Address="0x0088abd7" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac0f" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac19" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac4d" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac57" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac92" Value="00000010" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Rise of the Tomb Raider" Name="1800p 60 FPS (PS4 Pro mode)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x0088aac2" Value="800c0000" />
+      <Line Type="bytes" Address="0x0088aacd" Value="08070000" />
+      <Line Type="bytes" Address="0x0088e288" Value="800c0000" />
+      <Line Type="bytes" Address="0x0088e2a6" Value="08070000" />
+      <Line Type="bytes" Address="0x0088f243" Value="800c0000" />
+      <Line Type="bytes" Address="0x0088f27c" Value="08070000" />
+      <Line Type="bytes" Address="0x0089121d" Value="800c0000" />
+      <Line Type="bytes" Address="0x0089124d" Value="08070000" />
+      <Line Type="bytes" Address="0x00897cb0" Value="ba02000000909090" />
+      <Line Type="bytes" Address="0x00897cbe" Value="909090" />
+      <Line Type="bytes" Address="0x00897e0e" Value="8d0c00" />
+      <Line Type="bytes" Address="0x00897e11" Value="01c0909090909090" />
+      <Line Type="bytes" Address="0x008a7a45" Value="08070000" />
+      <Line Type="bytes" Address="0x008a7aba" Value="800c0000" />
+      <Line Type="bytes" Address="0x008a7abf" Value="08070000" />
+      <Line Type="bytes" Address="0x008a7b94" Value="800c0000" />
+      <Line Type="bytes" Address="0x008a7b99" Value="08070000" />
+      <Line Type="bytes" Address="0x008a7e9a" Value="08070000" />
+      <Line Type="bytes" Address="0x008a7f0d" Value="800c0000" />
+      <Line Type="bytes" Address="0x008a7f18" Value="08070000" />
+      <Line Type="bytes" Address="0x008a8076" Value="800c0000" />
+      <Line Type="bytes" Address="0x008a8082" Value="08070000" />
+      <Line Type="bytes" Address="0x008a8d31" Value="be01000000" />
+      <Line Type="bytes" Address="0x008a8d81" Value="800c0000" />
+      <Line Type="bytes" Address="0x008a8de2" Value="08070000" />
+      <Line Type="bytes" Address="0x008a8c6d" Value="08070000" />
+      <Line Type="bytes" Address="0x015da210" Value="b801000000c3" />
+      <Line Type="bytes" Address="0x0088e26c" Value="31f6" />
+      <Line Type="bytes" Address="0x00887a0b" Value="00110000" />
+      <Line Type="bytes" Address="0x00897d6c" Value="00000064" />
+      <Line Type="bytes" Address="0x0088abd7" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac0f" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac19" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac4d" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac57" Value="00000010" />
+      <Line Type="bytes" Address="0x0088ac92" Value="00000010" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Rise of the Tomb Raider" Name="1440p 60 FPS (PS4 Pro mode)" NeoRequires="pro" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x0088aac2" Value="000a0000" />
+      <Line Type="bytes" Address="0x0088aacd" Value="a0050000" />
+      <Line Type="bytes" Address="0x0088e288" Value="000a0000" />
+      <Line Type="bytes" Address="0x0088e2a6" Value="a0050000" />
+      <Line Type="bytes" Address="0x0088f243" Value="000a0000" />
+      <Line Type="bytes" Address="0x0088f27c" Value="a0050000" />
+      <Line Type="bytes" Address="0x0089121d" Value="000a0000" />
+      <Line Type="bytes" Address="0x0089124d" Value="a0050000" />
+      <Line Type="bytes" Address="0x00897cb0" Value="ba02000000909090" />
+      <Line Type="bytes" Address="0x00897cbe" Value="909090" />
+      <Line Type="bytes" Address="0x00897e0e" Value="8d0c00" />
+      <Line Type="bytes" Address="0x00897e11" Value="01c0909090909090" />
+      <Line Type="bytes" Address="0x008a7a45" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a7aba" Value="000a0000" />
+      <Line Type="bytes" Address="0x008a7abf" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a7b94" Value="000a0000" />
+      <Line Type="bytes" Address="0x008a7b99" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a7e9a" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a7f0d" Value="000a0000" />
+      <Line Type="bytes" Address="0x008a7f18" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a8076" Value="000a0000" />
+      <Line Type="bytes" Address="0x008a8082" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a8d31" Value="be01000000" />
+      <Line Type="bytes" Address="0x008a8d81" Value="000a0000" />
+      <Line Type="bytes" Address="0x008a8de2" Value="a0050000" />
+      <Line Type="bytes" Address="0x008a8c6d" Value="a0050000" />
+      <Line Type="bytes" Address="0x015da210" Value="b801000000c3" />
+      <Line Type="bytes" Address="0x0088e26c" Value="31f6" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Rise of the Tomb Raider" Name="120 FPS" NeoRequires="120hz" Note="Best with 1440p. Overrides 60 fps resolution patch." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x0088e26c" Value="31f6" />
+    </PatchList>
+  </Metadata>
+</Patch>
