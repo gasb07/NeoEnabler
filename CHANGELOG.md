@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2
+
+- Experimental 8GB Mode on firmware 10.01 (PS5 Pro). It is not tested by the maintainer yet: if you are on 10.01,
+  please report whether it works with the Test result form. (Contributed by squallsama.)
+- 8GB Mode no longer refuses to start when another payload, such as ShadowMount+ or kstuff, already uses part of the
+  memory area it needs. It now takes a free part of that area instead and leaves the other payload's part untouched.
+  This affected firmware 10.01 and 12.70.
+
 ## 0.6.0
 
 - Games installed on an external drive now appear in the Games page. Before, only games on the internal drive were

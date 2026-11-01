@@ -29,6 +29,7 @@
 #include "icon_data.h"
 #include "panel_data.h"
 static void log_line(const char *fmt, ...);
+#define BM_LOG(...) log_line(__VA_ARGS__)
 #include "memory_control.h"
 #include "gpu_control.h"
 #include "cpu_control.h"
@@ -38,7 +39,7 @@ static void log_line(const char *fmt, ...);
 #include "log_mirror.h"
 
 #define PORT 8765
-#define VERSION "NeoEnabler 0.6.1"
+#define VERSION "NeoEnabler 0.6.2"
 typedef struct {
     uint32_t app_id; uint64_t unknown1; char title_id[10]; uint32_t apptype; char unknown2[8];
     uint32_t attribute; /* param.sfo ATTRIBUTE as launched, including the hook change */
@@ -1592,7 +1593,7 @@ static void drop_8gib_request(void) {
     if (!force_8gib || memory_available()) return;
     force_8gib = 0;
     int saved = !settings_save();
-    log_line("Keep 8GB Mode on: cleared, 8GB Mode is not available (needs firmware 13.20 or 13.60, 12.70 experimental, with a validated memory launch hook)%s",
+    log_line("Keep 8GB Mode on: cleared, 8GB Mode is not available (needs firmware 13.20 or 13.60, 10.01 and 12.70 experimental, with a validated memory launch hook)%s",
              saved ? "" : " (settings not saved)");
 }
 
@@ -2037,7 +2038,7 @@ int main(void) {
                 force_neo = value; launch_attach(1);
                 amsg = value ? "Pro mode for every PS4 game: on" : "Pro mode for every PS4 game: off (follows the game patches)";
             } else if (value && !memory_available()) {
-                amsg = "8GB Mode needs firmware 13.20 or 13.60 (12.70 experimental) with a validated memory launch hook enabled; nothing changed";
+                amsg = "8GB Mode needs firmware 13.20 or 13.60 (10.01 and 12.70 experimental) with a validated memory launch hook enabled; nothing changed";
             } else {
                 force_8gib = value;
                 if (value) memory_request(1); else if (!auto8.active) memory_request(0);
