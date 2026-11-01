@@ -52,7 +52,7 @@
       <Line Type="bytes" Address="0x00e1b64b" Value="000f000070080000" />
     </PatchList>
   </Metadata>
-  <Metadata Title="DEVIL MAY CRY 4 Special Edition" Name="120 FPS" Note="Must enable 120 hz output in advanced settings." Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+  <Metadata Title="DEVIL MAY CRY 4 Special Edition" Name="120 FPS" NeoRequires="120hz" Note="120 HZ required" Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x00604d57" Value="b90200000090" /> 
       <Line Type="bytes" Address="0x00604d2e" Value="0000f042" />
