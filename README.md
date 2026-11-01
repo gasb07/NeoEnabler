@@ -22,7 +22,7 @@ Version 0.6.0 adds **experimental** 8 GiB support on firmware 12.70: it is not t
 
 ## What you need
 
-- A jailbroken PS5 on firmware 4.00 to 13.60 (tested on 13.20) with an ELF loader, such as etaHEN or elfldr.
+- A jailbroken PS5 on firmware 4.00 to 13.60 (tested on 13.20 and 13.60) with an ELF loader, such as etaHEN or elfldr.
 - [ps-patch-system](https://github.com/illusionyy/ps-patch-system), loaded **before** NeoEnabler.
 
 > [!IMPORTANT]
@@ -43,7 +43,7 @@ Version 0.6.0 adds **experimental** 8 GiB support on firmware 12.70: it is not t
 The **8 GiB PS4 Pro memory budget** follows patches marked "8 GiB" in the panel.
 This mode requires:
 
-- **Firmware 13.20** (Bloodborne gameplay and automatic restoration checked) or **13.60** (community-reported Bloodborne 4K gameplay with 8 GiB enabled).
+- **Firmware 13.20** or **13.60**.
   **12.70 is experimental and untested**: the manager refuses the 8 GiB launch if the firmware does not match what it
   expects, but a wrong value could still freeze the console.
 - A running NeoEnabler manager and the validated ShellCore launch hook. The DATA path does **not** require an HV
@@ -88,14 +88,14 @@ A failed kernel-write recovery of the memory budget requires a console reboot be
 
 Anyone on your local network can open the panel.
 
-### GPU clock tab (0.3.0)
+### GPU clock tab
 
 ![GPU clock tab](docs/panel-gpu.jpg)
 
 Open **GPU clock** in the panel, select a target from **1800 to 2350 MHz** in 50 MHz steps, and use
 **Apply boost**. The current clock reported by the SMU updates every two seconds. The target and enable flag
 are saved with **Save Settings** and requested again when a PS4 game starts. 2350 MHz is for the PS5 Pro, 2200 MHz is the maximum for the standard PS5.
-This works independently of NEO and 8 GiB, including PS4 base mode.
+This works independently of CPU boost, NEO and 8 GiB, including PS4 base mode.
 
 GPU boost is **off by default**, with 2200 MHz selected. It is confirmed working on **firmware 13.20 and 13.60** and uses the stock
 `/dev/mp1` driver, without patching the kernel or needing a hypervisor exploit. The sustained frequency may be
@@ -109,6 +109,21 @@ panel shows the error and stops retrying: use Disable to retry the restoration b
 
 Boost does not change CPU clocks, thermal or power limits, memory bandwidth or ROPs. On other firmwares, or when
 the MP1 driver does not answer, the GPU clock tab is not shown.
+
+### CPU clock tab 
+
+![GPU clock tab](docs/panel-cpu.jpg)
+
+Open CPU clock in the panel and use Apply boost. While a PS4 game runs, boost holds every core at the fastest CPU state (P-state 0) and puts back any core the system lowers. The current clock shows the slowest core, read live from the SMU, and updates every two seconds. Power and thermal controls remain active. The enable flag is saved with Save Settings and applied again when the next PS4 game starts. Until then the panel shows Enabled; waiting for a PS4 game, with the previous clock listed as Not captured. It applies to PS4 games in base or NEO mode. This works independently of NEO, 8 GiB mode and the GPU boost.
+
+CPU boost is **off by default**. It is confirmed working on firmware 13.20 and 13.60 and uses the stock /dev/mp1 driver, without patching the kernel or needing a hypervisor exploit. The sustained frequency may be lower than P-state 0 because power and thermal controls remain active. A short gameplay test read [measured clock]. FPS gains and long-term stability have not been established.
+
+Disable boost and Quit restore the CPU clock captured for the running game. When the game closes, the system manages the clocks again, and the next PS4 launch captures a new baseline. If a request or restoration fails, the
+panel shows the error and stops retrying: use Disable to retry the restoration before enabling again.
+
+Boost does not change GPU clocks, thermal, or power limits. On other firmwares, or when
+the MP1 driver does not answer, the GPU clock tab is not shown.
+
 
 ## Game patches
 
