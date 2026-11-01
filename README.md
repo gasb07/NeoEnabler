@@ -114,7 +114,9 @@ the MP1 driver does not answer, the GPU clock tab is not shown.
 
 ![GPU clock tab](docs/panel-cpu.jpg)
 
-Open CPU clock in the panel and use Apply boost. While a PS4 game runs, boost holds every core at the fastest CPU state (P-state 0) and puts back any core the system lowers. The current clock shows the slowest core, read live from the SMU, and updates every two seconds. Power and thermal controls remain active. The enable flag is saved with Save Settings and applied again when the next PS4 game starts. Until then the panel shows Enabled; waiting for a PS4 game, with the previous clock listed as Not captured. It applies to PS4 games in base or NEO mode. This works independently of NEO, 8 GiB mode and the GPU boost.
+Open CPU clock in the panel and use Apply boost. While a PS4 game runs, boost holds every core at the fastest CPU state (P-state 0) and puts back any core the system lowers. The current clock shows the slowest core, read live from the SMU, and updates every two seconds. Power and thermal controls remain active. The enable flag is saved with Save Settings and applied again when the next PS4 game starts. Until then the panel shows Enabled; waiting for a PS4 game, with the previous clock listed as Not captured. It applies to PS4 games in base or NEO mode.  This works independently of NEO, 8 GiB mode and the GPU boost.
+
+The standard clock speed when running ps4 games on PS4 is 2.84 Ghz. Boost will force the CPU to run at a minimum of 3.2 GHz and maximum of 3.5 GHz. There is no way to know for sure what the CPU is running at because the SMU keeps it a secret but the Kernel does know what P state the CPU is in and it has 3.2 ghz as the reference for P-state 0. 
 
 CPU boost is **off by default**. It is confirmed working on firmware 13.20 and 13.60 and uses the stock /dev/mp1 driver, without patching the kernel or needing a hypervisor exploit. The sustained frequency may be lower than P-state 0 because power and thermal controls remain active. A short gameplay test read [measured clock]. FPS gains and long-term stability have not been established.
 
