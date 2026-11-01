@@ -154,42 +154,53 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 
 | Patch | Author | Source |
 | --- | --- | --- |
-| Bloodborne: Resolution Patch WxH, base of the NEO 1440p/1620p entries | [Kyo](https://github.com/Kyoskii) | [shadps4-emu/ps4_cheats](https://github.com/shadps4-emu/ps4_cheats/blob/main/PATCHES/Bloodborne.xml) |
-| The Order: 1886: 60 FPS Unlock, used by the Native 4K 60fps entry | [illusion](https://github.com/illusionyy) | PS-Game-Patch, `patches/xml/TheOrder1886-Orbis.xml` |
+| Alien: Isolation: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS, 120 FPS | gasb07 | |
 | Batman: Arkham Knight: 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Battlefield 4: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Battlefield Hardline: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
+| Bloodborne: Resolution Patch WxH, base of the NEO 1440p/1620p entries | [Kyo](https://github.com/Kyoskii) | [shadps4-emu/ps4_cheats](https://github.com/shadps4-emu/ps4_cheats/blob/main/PATCHES/Bloodborne.xml) |
 | Bloodborne: 1440p, 1620p, 1800p, Native 4K resolution patches; 1800p/4K require 8 GiB mode | [Kyo](https://github.com/Kyoskii), gasb07 | |
 | Dark Souls III: The Fire Fades Edition: 1440p, 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | DanielSvoboda, gasb07 | |
 | Dead Island - Definitive Edition: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | DEVIL MAY CRY 4 Special Edition: 1440p, Native 4K resolution patches, 120 FPS patch | [Criminal](https://github.com/TheaCriminal) | |
-| Dishonored 2: 1620p, 1800p, Native 4K resolution patches, 60 FPS cap, skip intro videos | gasb07 | |
+| Devil May Cry HD Collection: 4K patches for all three games, 120 FPS patch for DMC3 | [Criminal](https://github.com/TheaCriminal) | |
 | Dishonored: Definitive Edition: 1440p, 1800p, Native 4K resolution patches, 60 FPS patch with triple buffering | gasb07, [illusion](https://github.com/illusionyy) | |
+| Dishonored 2: 1620p, 1800p, Native 4K resolution patches, 60 FPS cap, skip intro videos | gasb07 | |
 | DmC Devil May Cry: Definitive Edition: 1440p, 1800p, Native 4K resolution patches | [Criminal](https://github.com/TheaCriminal) | |
-| DRAGON QUEST XI S: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
+| Dragon Age: Inquisition: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS, 120 FPS | gasb07, [illusion](https://github.com/illusionyy) | |
 | Dragon's Dogma: Dark Arisen: Native 4K resolution patch | gasb07 | |
+| DRAGON QUEST XI S: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Driveclub: 1440p resolution patch; 4K output with 1620p/1800p rendering | gasb07 | |
+| The Evil Within: 1440p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
+| The Evil Within 2: 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
+| Gravity Rush 2: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS | [Criminal](https://github.com/TheaCriminal), gasb07, [illusion](https://github.com/illusionyy) | |
+| inFAMOUS Second Son: 4K checkerboard resolution patch | gasb07 | |
 | Just Cause 3: 1440p and Native 4K resolution patches, offline mode patch to skip online login | gasb07 | |
 | KILLZONE SHADOW FALL: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Mad Max: 1440p, 1800p, Native 4K resolution patches | gasb07 | |
 | METAL GEAR SOLID V: THE PHANTOM PAIN: 1440p, 1620p, 1800p, Native 4K, 4K checkerboard resolution patches | gasb07 | |
+| Middle-earth: Shadow of Mordor - Game of the Year Edition: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Need for Speed: Rivals: 1440p and Native 4K resolution patches | gasb07 | |
 | NieR:Automata: 1440p, 1620p, 1800p resolution patches | gasb07 | |
+| The Order: 1886: 60 FPS Unlock, used by the Native 4K 60fps entry | [illusion](https://github.com/illusionyy) | PS-Game-Patch, `patches/xml/TheOrder1886-Orbis.xml` |
+| The Order 1886: Native 4K resolution patch, Native 4K 60 FPS patch | gasb07, [illusion](https://github.com/illusionyy), gasb07 | |
 | Prey: 1620p, 1800p, Native 4K resolution patches, 60 FPS cap, skip intro videos | gasb07 | |
 | Ratchet and Clank: 1728p, 1872p, Native 4K resolution patches | gasb07 | |
+| Rayman Legends: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | RESIDENT EVIL 6: 1440p and Native 4K resolution patches | gasb07 | |
+| Rise of the Tomb Raider: 1440p, 1800p, 4k, 120FPS | [Criminal](https://github.com/TheaCriminal) | |
 | Shadow of the Colossus: 1620p, 1800p, Native 4K resolution patches, debug menu, skip splash logo/demo screens, 60 FPS patch | gasb07, [illusion](https://github.com/illusionyy) | |
-| Sleeping Dogs: Definitive Edition: 1440p, 1620p, 1800p, Native 4K resolution patches; 60 FPS variants for each resolution | gasb07, [illusion](https://github.com/illusionyy), gasb07 | |
+| Sleeping Dogs: Definitive Edition: 1440p, 1620p, 1800p, Native 4K resolution patches; 60 FPS variants for each resolution | gasb07, [illusion](https://github.com/illusionyy) | |
 | Spyro Reignited Trilogy: 1620p, 1800p, Native 4K resolution patches | Shane O'Reilly | |
-| The Evil Within 2: 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
-| The Evil Within: 1440p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
-| The Order 1886: Native 4K resolution patch, Native 4K 60 FPS patch | gasb07, [illusion](https://github.com/illusionyy), gasb07 | |
+| Thief: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS | gasb07 | |
+| Titanfall 2: 1620p, 1800p, Native 4K resolution patches | gasb07 | |
+| Tomb Raider: Definitive Edition: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Uncharted: Drake's Fortune Remastered: 1440p, 1620p, 1800p, Native 4K resolution patches; 4K options with standard or full texture quality (8 GiB mode) | gasb07 | |
 | Uncharted 2: Among Thieves Remastered: 1440p, 1620p, 1800p, Native 4K resolution patches; 4K options with standard or full texture quality (8 GiB mode) | gasb07 | |
 | Uncharted 3: Drake's Deception Remastered: 1440p, 1620p, 1800p, Native 4K resolution patches; 4K options with standard or full texture quality (8 GiB mode) | gasb07 | |
 | Watch Dogs: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS patch, 60 FPS patch with triple buffering | gasb07 | |
+| Watch Dogs 2: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS, 120 FPS | gasb07 | |
 | Yakuza 6: The Song of Life: 1440p, 1620p, 1800p, Native 4K resolution patches; 60 FPS patch; 4K requires 8 GiB mode | gasb07 | |
-| inFAMOUS Second Son: 4K checkerboard resolution patch | gasb07 | |
 
 Entries with author "gasb07" (Pro mode, resolutions, JC3 offline mode) and the NEO fixes inside the
 Bloodborne resolution entries were made in this project.
