@@ -7,7 +7,7 @@
     <ID>CUSA06059</ID>
     <ID>CUSA06069</ID>
   </TitleID>
-  <Metadata Title="Rise of the Tomb Raider" Name="4K 60 FPS (PS4 Pro mode)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+  <Metadata Title="Rise of the Tomb Raider" Name="4K 60 FPS (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x0088aac2" Value="000f0000" />
       <Line Type="bytes" Address="0x0088aacd" Value="70080000" />
@@ -47,7 +47,7 @@
       <Line Type="bytes" Address="0x0088ac92" Value="00000010" />
     </PatchList>
   </Metadata>
-  <Metadata Title="Rise of the Tomb Raider" Name="1800p 60 FPS (PS4 Pro mode)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
+  <Metadata Title="Rise of the Tomb Raider" Name="1800p 60 FPS (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="Based on Enriched Visuals; preset toggle is locked so the in-game mode switch does nothing." Author="Criminal" PatchVer="1.0" AppVer="01.06" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x0088aac2" Value="800c0000" />
       <Line Type="bytes" Address="0x0088aacd" Value="08070000" />
