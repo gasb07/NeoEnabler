@@ -7,6 +7,8 @@
 - 8GB Mode no longer refuses to start when another payload, such as ShadowMount+ or kstuff, already uses part of the
   memory area it needs. It now takes a free part of that area instead and leaves the other payload's part untouched.
   This affected firmware 10.01 and 12.70.
+- The Play button no longer refuses to start a game because a payload running under a system app (for example
+  NPXS45093) was taken for an open game.
 
 ## 0.6.0
 

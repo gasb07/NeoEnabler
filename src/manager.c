@@ -376,14 +376,17 @@ static int game_proc_name(const char *comm) {
     return !strcmp(comm, "eboot.bin") || (l > 4 && !strcmp(comm + l - 4, ".elf"));
 }
 
-/* A process counts as a PS4 game when it has a known game executable name, or, whatever its name, when it has an app
-   info with a title ID and has loaded a PS4 graphics driver (base, Pro or Compat1). The second test finds games
+/* A process counts as a PS4 game when it is eboot.bin, or has a non-system app title ID (not NPXS) and either an .elf
+   executable name or a loaded PS4 graphics driver (base, Pro or Compat1). The second test finds games
    started from a launcher under another executable name. System processes (Sce*) are skipped without a query. */
 static int game_proc(const struct kinfo_proc *ki) {
-    if (game_proc_name(ki->ki_comm)) return 1;
+    if (!strcmp(ki->ki_comm, "eboot.bin")) return 1;
     if (!strncmp(ki->ki_comm, "Sce", 3)) return 0;
     app_info_t info = {0}; uint32_t h = 0;
     if (sceKernelGetAppInfo(ki->ki_pid, &info) || !info.title_id[0]) return 0;
+    /* payloads (*.elf) can run under a system app ID (NPXS...): never a game */
+    if (!strncmp(info.title_id, "NPXS", 4)) return 0;
+    if (game_proc_name(ki->ki_comm)) return 1;
     return !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverForNeoMode.sprx", &h) ||
            !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriver.sprx", &h) ||
            !kernel_dynlib_handle(ki->ki_pid, "libSceGnmDriverCompat1.sprx", &h);
