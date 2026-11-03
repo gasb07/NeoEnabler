@@ -54,10 +54,11 @@ static void reset(uint32_t fw){
 }
 int main(void){
  assert(!mbd_find_layout(0x13500000));
- const uint32_t firmwares[]={0x13200000,0x13600000};
- for(unsigned i=0;i<2;i++){
+ const uint32_t firmwares[]={0x09000000,0x12700000,0x13200000,0x13600000};
+ const uint32_t expected_ext[]={0x2d940b8,0x2e880b8,0x2ee00b8,0x2ef40b8};
+ for(unsigned i=0;i<4;i++){
   reset(firmwares[i]);
-  assert(layout->ext_global==(i?0x2ef40b8:0x2ee00b8));
+  assert(layout->ext_global==expected_ext[i]);
   mbd_snapshot s;mbd_transaction tx={0};
   assert(!mbd_read_snapshot(layout,&s)&&mbd_eligible(&s));
   assert(mbd_state(layout)==MBD_STOCK);
