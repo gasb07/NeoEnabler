@@ -53,6 +53,14 @@ static void reset(uint32_t fw){
  writes=fail_write=fail_restore=foreign_write=fail_read=0;
 }
 int main(void){
+ /* The 10.01 layout was measured on a Pro console: one PS4 mount dump gave exactly
+  * one 4 GiB qword whose +0x28 was a live container pointer with references=1,
+  * profile=1, maximum=0, extension=0, and the idle dump of the same firmware had
+  * container=0 and references=0 at the same offsets. */
+ assert(mbd_find_layout(0x10010000)&&
+        mbd_find_layout(0x10010000)->ext_global==0x2d5c0b8&&
+        mbd_find_layout(0x10010000)->container_ptr==0x2d55fe0&&
+        mbd_find_layout(0x10010000)->backing_base==0x2d55fb8);
  assert(!mbd_find_layout(0x13500000));
  const uint32_t firmwares[]={0x13200000,0x13600000};
  for(unsigned i=0;i<2;i++){

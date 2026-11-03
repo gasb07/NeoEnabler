@@ -4,17 +4,27 @@
 #pragma once
 #include "step_shim_data.h"
 
+/* Diagnostics: the manager maps this to log_line(), offline tests leave it a no-op. */
+#ifndef BM_LOG
+#define BM_LOG(...) ((void)0)
+#endif
+
 typedef struct {
  uint32_t fw, function, call, import_, got, wrapper, padding, cave, end;
  unsigned char call_bytes[5], stub[6];
+ /* ShellCore frame sizes: the prologue is `sub rsp, imm32`, and 10.01 allocates a
+  * different frame than 12.xx/13.xx, so the check has to use the profile value. */
+ uint32_t function_stack, wrapper_stack;
 } bm_profile;
 static const bm_profile bm_profiles[]={
+ {0x10010000,0x611370,0x61207e,0x17d54a0,0x1e840a0,0x41540,0x17db60c,0x17db800,0x17dc000,
+  {0xe8,0x1d,0x34,0x1c,1},{0xff,0x25,0xfa,0xeb,0x6a,0},0x18d8,0x188},
  {0x12700000,0x691850,0x6926a1,0x1887e10,0x1f537c0,0x42510,0x188df9c,0x188e000,0x1890000,
-  {0xe8,0x6a,0x57,0x1f,1},{0xff,0x25,0xaa,0xb9,0x6c,0}},
+  {0xe8,0x6a,0x57,0x1f,1},{0xff,0x25,0xaa,0xb9,0x6c,0},0x18e8,0x198},
  {0x13200000,0x6d6dc0,0x6d7c11,0x195b690,0x2067458,0x42850,0x19619ec,0x1962000,0x1964000,
-  {0xe8,0x7a,0x3a,0x28,1},{0xff,0x25,0xc2,0xbd,0x70,0}},
+  {0xe8,0x7a,0x3a,0x28,1},{0xff,0x25,0xc2,0xbd,0x70,0},0x18e8,0x198},
  {0x13600000,0x6d7af0,0x6d8941,0x195c3b0,0x2067460,0x42850,0x19626fc,0x1963000,0x1964000,
-  {0xe8,0x6a,0x3a,0x28,1},{0xff,0x25,0xaa,0xb0,0x70,0}},
+  {0xe8,0x6a,0x3a,0x28,1},{0xff,0x25,0xaa,0xb0,0x70,0},0x18e8,0x198},
 };
 typedef struct {
  uint32_t enabled,active,gate,seq,response_seq,command,phase,category;
@@ -94,8 +104,9 @@ static int bm_bytes(uint64_t address,const unsigned char *expected,size_t n,cons
 }
 static int bm_valid(void){
  const bm_profile *p=bm.profile;uint64_t got;
- const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0xe8,0x18,0,0};
- const unsigned char wrapper[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0x98,1,0,0};
+ unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0,0,0,0};
+ unsigned char wrapper[sizeof pro];memcpy(wrapper,pro,sizeof pro);
+ memcpy(pro+16,&p->function_stack,4);memcpy(wrapper+16,&p->wrapper_stack,4);
  if(bm_bytes(bm.base+p->function,pro,sizeof pro,"ShellCore prologue")||
     bm_bytes(bm.base+p->call,p->call_bytes,5,"BeginAppMount2 call")||
     bm_bytes(bm.base+p->import_,p->stub,6,"BeginAppMount2 import"))return -1;
@@ -140,20 +151,28 @@ static int bm_reserve(uint64_t *out){
  if(p->cave<p->padding||p->end<=p->cave||(p->cave&1023)||
     p->end!=((p->padding+0x3fffU)&~0x3fffU)||p->end-p->cave>8*sizeof b)
   return bm_fail("Invalid firmware reservation bounds",bm.base+p->cave);
- uint64_t reuse=0;
+ uint64_t reuse=0;int foreign=0;
  for(uint32_t off=p->cave;off+sizeof b<=p->end;off+=sizeof b){
   if(bm_read(bm.base+off,b,sizeof b))return bm_fail("Launch-hook reservation unreadable",bm.base+off);
   size_t n=0;while(n<sizeof b&&!b[n])n++;
-  if(n==sizeof b){if(!*out)*out=bm.base+off;}
-  else if(!bm_retained(b)){
-   bm_padding_report();
-   return bm_fail("Reservation occupied, armed or unrecognized; reboot before retrying",bm.base+off);
-  }
+  /* keep the LAST free slot: other payloads (ShadowMount+, kstuff) write from the start of the
+  * text tail, so a slot near the page end is not overwritten when they load after us */
+  if(n==sizeof b)*out=bm.base+off;
+  /* A slot another payload already uses: skip it and keep scanning. ShadowMount+ takes
+   * 0x17db800..0x17db870 on 10.01, which used to make the 8 GiB hook refuse to install. */
+  else if(!bm_retained(b)){foreign++;}
   /* the previous run's own retained slot: disarmed and no longer called, and that run is gone */
   else if(bm_reuse_allowed&&off==bm_reuse_slot)reuse=bm.base+off;
  }
  if(reuse){*out=reuse;return 0;}
- return *out?0:bm_fail("No fresh reservation remains; reboot before retrying",bm.base+p->cave);
+ if(!*out){
+  bm_padding_report();
+  return bm_fail(foreign?"No free launch-hook slot left in the text tail: other payloads use it"
+                        :"No fresh reservation remains; reboot before retrying",bm.base+p->cave);
+ }
+ BM_LOG("8GB Mode: launch-hook slot 0x%x selected (%d slot%s taken by other payloads)",
+        (unsigned)(*out-bm.base),foreign,foreign==1?"":"s");
+ return 0;
 }
 static int bm_permissions(void){
  uint64_t pages[]={(bm.base+bm.profile->call)&~0x3fffULL,bm.cave&~0x3fffULL};

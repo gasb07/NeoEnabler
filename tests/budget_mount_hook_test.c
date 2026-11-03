@@ -52,9 +52,12 @@ static int mock_usleep(unsigned u){(void)u;return 0;}
 static void reset(uint32_t fw){
  memset(&bm,0,sizeof bm);bm_reuse_allowed=0;bm_reuse_slot=0;memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
  state=2;permission=7;stop_count=continue_count=continue_fail=stop_timeout=writes=readback_fail=pending_readback=cave_write_fail=change_on_stop=0;
- const bm_profile*p=bm_find(fw);assert(p);call_address=MAIN_BASE+p->call;cave_address=MAIN_BASE+p->cave;
- const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0xe8,0x18,0,0};
- unsigned char wrapper[sizeof pro];memcpy(wrapper,pro,sizeof pro);wrapper[16]=0x98;wrapper[17]=1;
+ const bm_profile*p=bm_find(fw);assert(p);call_address=MAIN_BASE+p->call;cave_address=MAIN_BASE+p->end-1024; /* the hook takes the last free slot */
+ /* Captured prologues: 10.01 allocates a smaller ShellCore frame than 12.xx/13.xx,
+  * so the stack immediates come from the profile under test. */
+ unsigned char pro[20]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0,0,0,0};
+ unsigned char wrapper[sizeof pro];memcpy(wrapper,pro,sizeof pro);
+ memcpy(pro+16,&p->function_stack,4);memcpy(wrapper+16,&p->wrapper_stack,4);
  memcpy(at(MAIN_BASE+p->function,sizeof pro),pro,sizeof pro);memcpy(at(call_address,5),p->call_bytes,5);memcpy(at(MAIN_BASE+p->import_,6),p->stub,6);
  uint64_t target=LIB_BASE+p->wrapper;memcpy(at(MAIN_BASE+p->got,8),&target,8);memcpy(at(target,sizeof wrapper),wrapper,sizeof wrapper);
 }
@@ -72,7 +75,7 @@ int main(void){
   reset(fw);assert(!bm_install(fw,1));stop_count=0;active_at_stop=2;assert(!bm_remove()&&!bm.attached&&state==2&&stop_count==2);
   active_at_stop=0;assert(!memcmp(at(cave_address,MS_ORIGINAL),step_code,MS_ORIGINAL));
   {uint32_t z=0;memcpy(at(cave_address+MS_ACTIVE,4),&z,4);}
-  assert(!bm_install(fw,1)&&bm.cave==cave_address+1024);assert(!bm_remove()); /* never reuse retained code */
+  assert(!bm_install(fw,1)&&bm.cave==cave_address-1024);assert(!bm_remove()); /* never reuse retained code */
   reset(fw);at(call_address,5)[0]^=1;assert(bm_install(fw,1)==-4&&!writes&&!stop_count);
   assert(strstr(bm.failure,"BeginAppMount2 call")&&bm.check_address==call_address);
   reset(fw);at(MAIN_BASE+p->got,8)[0]^=1;assert(bm_install(fw,1)==-4&&!writes);
@@ -97,18 +100,30 @@ int main(void){
    assert(!memcmp(at(MAIN_BASE+0x1962700,sizeof observed),observed,sizeof observed));
    assert(!bm_remove());
   }
-  /* Any unknown nonzero data INSIDE the pool must still fail before writes. */
+  /* A slot taken by another payload (unknown nonzero data) is skipped, never overwritten:
+     the hook takes the last free slot and the foreign bytes stay untouched. Only when
+     every slot of the pool is taken does the install fail, and then before any write. */
   for(uint32_t slot=p->cave;slot<p->end;slot+=1024){
    reset(fw);at(MAIN_BASE+slot,1024)[1023]=1;
-   assert(bm_install(fw,1)==-4&&!writes&&!stop_count);
-   assert(strstr(bm.failure,"Reservation occupied")&&bm.check_address==MAIN_BASE+slot);
+   uint32_t free_slot=0;
+   for(uint32_t s=p->cave;s<p->end;s+=1024)if(s!=slot)free_slot=s;
+   if(free_slot){
+    assert(!bm_install(fw,1)&&bm.attached);
+    assert(bm.cave==MAIN_BASE+free_slot);
+    assert(at(MAIN_BASE+slot,1024)[1023]==1);
+    assert(!bm_remove());
+   }else{
+    assert(bm_install(fw,1)==-4&&!writes&&!stop_count);
+    assert(strstr(bm.failure,"No free launch-hook slot")||strstr(bm.failure,"Reservation occupied"));
+   }
   }
+
   /* Killing the payload without Quit (rest mode): an idle armed orphan of ours is disarmed, the call restored and a
      fresh slot used; the orphan stays as a retained slot. */
   reset(fw);assert(!bm_install(fw,1));field(MS_ENABLED,1);
   memset(&bm,0,sizeof bm);writes=stop_count=continue_count=0;
   assert(!bm_install(fw,1)&&bm.recovered&&bm.attached&&state==2&&stop_count==2&&continue_count==2);
-  assert(bm.cave==cave_address+1024&&!memcmp(at(call_address,5),bm.redirect,5));
+  assert(bm.cave==cave_address-1024&&!memcmp(at(call_address,5),bm.redirect,5));
   {uint32_t v;memcpy(&v,at(cave_address+MS_ENABLED,4),4);assert(!v);}
   assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));
   /* Previous run confirmed gone: the idle orphan's slot is reused in place (same redirect, same code, cleared mailbox,
@@ -120,7 +135,7 @@ int main(void){
    assert(!memcmp(at(call_address,5),redirect,5)&&!memcmp(bm.redirect,redirect,5));
    uint32_t v;uint64_t c;memcpy(&v,at(old_cave+MS_ENABLED,4),4);assert(!v);memcpy(&v,at(old_cave+MS_SEQ,4),4);assert(!v);
    memcpy(&c,at(old_cave+MS_WAIT_CYCLES,8),8);assert(c==999);assert(!memcmp(at(old_cave,MS_ORIGINAL),step_code,MS_ORIGINAL));
-   for(size_t z=1024;z<2048;z++)assert(!at(cave_address,2048)[z]);           /* no fresh slot used */
+   for(size_t z=0;z<1024;z++)assert(!at(cave_address-1024,1024)[z]);           /* no fresh slot used */
    assert(!bm_remove()&&!memcmp(at(call_address,5),p->call_bytes,5));}
   /* After Quit the previous run's retained slot is reused when that run is gone and it is the slot it recorded;
      otherwise (not allowed, or another slot) a fresh slot is used as before. */
