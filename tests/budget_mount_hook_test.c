@@ -53,8 +53,8 @@ static void reset(uint32_t fw){
  memset(&bm,0,sizeof bm);bm_reuse_allowed=0;bm_reuse_slot=0;memset(main_memory,0,sizeof main_memory);memset(lib_memory,0,sizeof lib_memory);
  state=2;permission=7;stop_count=continue_count=continue_fail=stop_timeout=writes=readback_fail=pending_readback=cave_write_fail=change_on_stop=0;
  const bm_profile*p=bm_find(fw);assert(p);call_address=MAIN_BASE+p->call;cave_address=MAIN_BASE+p->cave;
- const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,0xe8,0x18,0,0};
- unsigned char wrapper[sizeof pro];memcpy(wrapper,pro,sizeof pro);wrapper[16]=0x98;wrapper[17]=1;
+ const unsigned char pro[]={0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec,(unsigned char)(fw==0x09000000?0xd8:0xe8),0x18,0,0};
+ unsigned char wrapper[sizeof pro];memcpy(wrapper,pro,sizeof pro);wrapper[16]=(unsigned char)(fw==0x09000000?0x78:0x98);wrapper[17]=1;
  memcpy(at(MAIN_BASE+p->function,sizeof pro),pro,sizeof pro);memcpy(at(call_address,5),p->call_bytes,5);memcpy(at(MAIN_BASE+p->import_,6),p->stub,6);
  uint64_t target=LIB_BASE+p->wrapper;memcpy(at(MAIN_BASE+p->got,8),&target,8);memcpy(at(target,sizeof wrapper),wrapper,sizeof wrapper);
 }
