@@ -2,11 +2,11 @@
 
 ## 0.6.2
 
-- Experimental 8GB Mode on firmware 10.01 (PS5 Pro). It is not tested by the maintainer yet: if you are on 10.01,
-  please report whether it works with the Test result form. (Contributed by squallsama.)
-- 8GB Mode no longer refuses to start when another payload, such as ShadowMount+ or kstuff, already uses part of the
-  memory area it needs. It now takes a free part of that area instead and leaves the other payload's part untouched.
-  This affected firmware 10.01 and 12.70.
+- 8GB Mode on firmware 10.01 (PS5 Pro), experimental. (Contributed by squallsama, who tested it with Bloodborne
+  and other games.)
+- 8GB Mode now works on firmware 10.01 and 12.70 together with ShadowMount+ and kstuff (12.70 confirmed with
+  Bloodborne by jinxcase000). Before, it refused to start when another payload already used part of the memory
+  area it needs; it now takes a free part of that area and leaves the other payload's part untouched.
 - The Play button no longer refuses to start a game because a payload running under a system app (for example
   NPXS45093) was taken for an open game.
 
