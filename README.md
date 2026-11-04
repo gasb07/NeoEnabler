@@ -196,6 +196,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | Just Cause 3: 1440p and Native 4K resolution patches, offline mode patch to skip online login | gasb07 | |
 | KILLZONE SHADOW FALL: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Mad Max: 1440p, 1800p, Native 4K resolution patches | gasb07 | |
+| MediEvil: 1440p, 1800p, 120HZ, Native 4K patches | [Criminal](https://github.com/TheaCriminal) | |
 | METAL GEAR SOLID V: THE PHANTOM PAIN: 1440p, 1620p, 1800p, Native 4K, 4K checkerboard resolution patches | gasb07 | |
 | Middle-earth: Shadow of Mordor - Game of the Year Edition: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Need for Speed: Rivals: 1440p and Native 4K resolution patches | gasb07 | |
