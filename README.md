@@ -190,6 +190,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | Driveclub: 1440p resolution patch; 4K output with 1620p/1800p rendering | gasb07 | |
 | The Evil Within: 1440p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
 | The Evil Within 2: 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
+| Gravity Rush Remastered: 1440p and 4K resolution patches, 120 FPS | [Criminal](https://github.com/TheaCriminal), [Junmin Lee](https://github.com/junminlee2004) | gasb07 Neo Findings |
 | Gravity Rush 2: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS | [Criminal](https://github.com/TheaCriminal), gasb07, [illusion](https://github.com/illusionyy) | |
 | inFAMOUS Second Son: 4K checkerboard resolution patch | gasb07 | |
 | Just Cause 3: 1440p and Native 4K resolution patches, offline mode patch to skip online login | gasb07 | |
