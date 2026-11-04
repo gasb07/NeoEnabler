@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA12982</ID>
+    <ID>CUSA11227</ID>
+    <ID>CUSA15952</ID>
+  </TitleID>
+  <Metadata Title="MediEvil" Name="1440p (PS4 Pro mode)" NeoRequires="pro" Note="2560x1440" Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x040c1db8" Value="000a0000a0050000" />
+      <Line Type="bytes" Address="0x040c1e18" Value="000a0000a0050000" />
+      <Line Type="bytes" Address="0x00f6bcf4" Value="000a0000a0050000" />
+      <Line Type="bytes" Address="0x00f7034b" Value="000a0000a0050000" />
+      <Line Type="bytes" Address="0x025af801" Value="e82c000000" />
+      <Line Type="bytes" Address="0x025af832" Value="c7048b0000c842c5fa10048bc3" />
+      <Line Type="bytes" Address="0x00cf77c1" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf77cc" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf78ca" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf78f2" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7911" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7921" Value="00000020" />
+      <Line Type="bytes" Address="0x0408b758" Value="0000002000000000" />
+      <Line Type="bytes" Address="0x00ce3ba3" Value="1d" />
+      <Line Type="bytes" Address="0x00ce3ba7" Value="00020000" />
+      <Line Type="bytes" Address="0x00ce4842" Value="1d" />
+      <Line Type="bytes" Address="0x00ce4845" Value="00020000" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="MediEvil" Name="1800p (PS4 Pro mode)" NeoRequires="pro" Note="3200x1800" Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x040c1db8" Value="800c000008070000" />
+      <Line Type="bytes" Address="0x040c1e18" Value="800c000008070000" />
+      <Line Type="bytes" Address="0x00f6bcf4" Value="800c000008070000" />
+      <Line Type="bytes" Address="0x00f7034b" Value="800c000008070000" />
+      <Line Type="bytes" Address="0x025af801" Value="e82c000000" />
+      <Line Type="bytes" Address="0x025af832" Value="c7048b0000c842c5fa10048bc3" />
+      <Line Type="bytes" Address="0x00cf77c1" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf77cc" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf78ca" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf78f2" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7911" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7921" Value="00000020" />
+      <Line Type="bytes" Address="0x0408b758" Value="0000002000000000" />
+      <Line Type="bytes" Address="0x00ce3ba3" Value="1d" />
+      <Line Type="bytes" Address="0x00ce3ba7" Value="00020000" />
+      <Line Type="bytes" Address="0x00ce4842" Value="1d" />
+      <Line Type="bytes" Address="0x00ce4845" Value="00020000" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="MediEvil" Name="Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160" Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x040c1db8" Value="000f000070080000" />
+      <Line Type="bytes" Address="0x040c1e18" Value="000f000070080000" />
+      <Line Type="bytes" Address="0x00f6bcf4" Value="000f000070080000" />
+      <Line Type="bytes" Address="0x00f7034b" Value="000f000070080000" />
+      <Line Type="bytes" Address="0x025af801" Value="e82c000000" />
+      <Line Type="bytes" Address="0x025af832" Value="c7048b0000c842c5fa10048bc3" />
+      <Line Type="bytes" Address="0x00cf77c1" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf77cc" Value="00200000" />
+      <Line Type="bytes" Address="0x00cf78ca" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf78f2" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7911" Value="00000020" />
+      <Line Type="bytes" Address="0x00cf7921" Value="00000020" />
+      <Line Type="bytes" Address="0x0408b758" Value="0000002000000000" />
+      <Line Type="bytes" Address="0x00ce3ba3" Value="1d" />
+      <Line Type="bytes" Address="0x00ce3ba7" Value="00020000" />
+      <Line Type="bytes" Address="0x00ce4842" Value="1d" />
+      <Line Type="bytes" Address="0x00ce4845" Value="00020000" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="MediEvil" Name="120HZ" NeoRequires="120hz" Note="120HZ with 60 FPS." Author="Criminal" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x02b585d9" Value="c5fa5d0527d75101" />
+      <Line Type="bytes" Address="0x040e2730" Value="9cc420b07268813f" />
+      <Line Type="bytes" Address="0x040e2758" Value="111111111111813f" />
+      <Line Type="bytes" Address="0x02b58580" Value="c5f857c0c3" />
+      <Line Type="bytes" Address="0x00a89c08" Value="31f6" />
+      <Line Type="bytes" Address="0x00a89e70" Value="31f6" />
+      <Line Type="bytes" Address="0x00a8aa15" Value="31f6" />
+    </PatchList>
+  </Metadata>
+</Patch>
