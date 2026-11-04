@@ -25,6 +25,7 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Just Cause 3 (01.05) | 1440p, 4K | Also enable "Offline mode", or the game keeps trying to log in. |
 | Killzone Shadow Fall (01.81) | 1440p, 1620p, 1800p, 4K | 4K is below 60 fps. |
 | Mad Max (01.06) | 1440p, 1800p, native 4K | |
+| MediEvil: 120 HZ, 1440p, 1800p, Native 4K patches | [Criminal](https://github.com/TheaCriminal) | Native PS4 Pro game (Stock Pro render is 1080p) |
 | Metal Gear Solid V: The Phantom Pain (01.16) | 1440p, 1620p, 1800p, native 4K, 4K checkerboard | Native PS4 Pro game (stock Pro render is 2560x1440 checkerboard). The native entries turn checkerboard off and have no anti-aliasing; 4K checkerboard keeps the game's anti-aliasing. Stock memory. **Tested on firmware 13.20 only.** |
 | Middle-earth: Shadow of Mordor - Game of the Year Edition (01.05) | 1440p, 1620p, 1800p, Native 4K | PS4 Pro game. Select the quality mode in the game options. Stock memory (no 8GB Mode). |
 | Need for Speed Rivals (01.04, 01.03) | 1440p, 4K | If your existing patch file for the game has "Resolution Patch", keep it off. |
