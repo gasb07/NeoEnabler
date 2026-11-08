@@ -16,8 +16,10 @@ when one of its enabled patches needs it; every other game starts as usual.
 Version 0.3.5 supports the 8 GiB memory budget without an HV unlock on firmware 13.20 and 13.60.
 See [validation and limitations](docs/8GB-NO-HV-1360.md): 13.20 has a Bloodborne gameplay and restoration test;
 13.60 has community reports of Bloodborne 4K gameplay with 8 GiB enabled and a successful launch after the availability fix.
-8 GiB support on firmware 10.01 and 12.70 is **experimental**: each has one community report of Bloodborne running with
-8 GiB enabled. If you are on one of them, please report whether it works with the
+8 GiB support on firmware 10.01, 12.20 and 12.70 is **experimental**. On 12.20, one console test of Bloodborne
+(CUSA00900) confirmed 8 GiB on launch and restoration of the stock DATA extension after closing the game.
+10.01 and 12.70 each have one community report of Bloodborne running with 8 GiB enabled.
+If you are on one of these firmwares, please report whether it works with the
 [Test result form](https://github.com/gasb07/NeoEnabler/issues/new?template=test-result.yml).
 
 ## What you need
@@ -44,7 +46,7 @@ The **8 GiB PS4 Pro memory budget** follows patches marked "8 GiB" in the panel.
 This mode requires:
 
 - **Firmware 13.20** or **13.60**.
-  **10.01 and 12.70 are experimental**: the manager refuses the 8 GiB launch if the firmware does not match what it
+  **10.01, 12.20 and 12.70 are experimental**: the manager refuses the 8 GiB launch if the firmware does not match what it
   expects, but a wrong value could still freeze the console.
 - A running NeoEnabler manager and the validated ShellCore launch hook. The DATA path does **not** require an HV
   unlock and does not read or patch kernel TEXT.
