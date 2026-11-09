@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA16163</ID>
+    <ID>CUSA16113</ID>
+    <ID>CUSA18833</ID>
+    <ID>CUSA18650</ID>
+  </TitleID>
+  <Metadata Title="Bayonetta" Name="4K (PS4 Pro mode)" NeoRequires="pro" Note="Raises resolution from 1440p to 2160p. VRR breaks cutscenes on this game so turn it off." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x00e8b5de" Value="000f0000" />
+      <Line Type="bytes" Address="0x00e8b5e4" Value="70080000" />
+    </PatchList>
+  </Metadata>
+</Patch>
