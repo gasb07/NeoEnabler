@@ -175,6 +175,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | Batman: Arkham Knight: 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Battlefield 4: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Battlefield Hardline: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
+| Bayonetta: Native 4k resolution patch | [Criminal](https://github.com/TheaCriminal) | |
 | Bloodborne: Resolution Patch WxH, base of the NEO 1440p/1620p entries | [Kyo](https://github.com/Kyoskii) | [shadps4-emu/ps4_cheats](https://github.com/shadps4-emu/ps4_cheats/blob/main/PATCHES/Bloodborne.xml) |
 | Bloodborne: 1440p, 1620p, 1800p, Native 4K resolution patches; 1800p/4K require 8 GiB mode | [Kyo](https://github.com/Kyoskii), gasb07 | |
 | Dark Souls III: The Fire Fades Edition: 1440p, 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | DanielSvoboda, gasb07 | |
@@ -190,6 +191,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | Driveclub: 1440p resolution patch; 4K output with 1620p/1800p rendering | gasb07 | |
 | The Evil Within: 1440p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
 | The Evil Within 2: 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
+| Final Fantasy XV: 1440p and 1944p resolution patches, 60 FPS High/Steady mode | [Criminal](https://github.com/TheaCriminal) | |
 | Gravity Rush Remastered: 1440p and 4K resolution patches, 120 FPS | [Criminal](https://github.com/TheaCriminal), [Junmin Lee](https://github.com/junminlee2004) | gasb07 Neo Findings |
 | Gravity Rush 2: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS | [Criminal](https://github.com/TheaCriminal), gasb07, [illusion](https://github.com/illusionyy) | |
 | inFAMOUS Second Son: 4K checkerboard resolution patch | gasb07 | |
