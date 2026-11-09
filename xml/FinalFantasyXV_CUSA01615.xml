@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA01615</ID>
+    <ID>CUSA01633</ID>
+    <ID>CUSA01570</ID>
+    <ID>CUSA09107</ID>
+    <ID>CUSA01706</ID>
+  </TitleID>
+  <Metadata Title="Final Fantasy XV" Name="1440p60 Lite/Steady | 1944p60 High (PS4 Pro mode)" NeoRequires="pro" Note="Lite and Steady now have High graphics enhancements and all modes have 60 FPS. High has checkerboarding disabled and runs at 3456x1944." Author="Criminal" PatchVer="1.0" AppVer="01.29" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x04f622c0" Value="000a0000a00500008007000038040000" />
+      <Line Type="bytes" Address="0x04f64c40" Value="000a0000a0050000000a0000a0050000" />
+      <Line Type="bytes" Address="0x0102bf88" Value="3c" />
+      <Line Type="bytes" Address="0x027d4945" Value="3c" />
+      <Line Type="bytes" Address="0x0102bf5a" Value="04" />
+      <Line Type="bytes" Address="0x0102bfb6" Value="04" />
+      <Line Type="bytes" Address="0x0102bf6e" Value="01" />
+      <Line Type="bytes" Address="0x04f622b0" Value="800d000098070000800c000008070000" />
+      <Line Type="bytes" Address="0x04f64c60" Value="800d000098070000800d000098070000" />
+      <Line Type="bytes" Address="0x0109e590" Value="800c000008070000" />
+      <Line Type="bytes" Address="0x0109e533" Value="c78598feffff000a0000c7859cfeffffa00500000f1f4000" />
+      <Line Type="bytes" Address="0x0109e68b" Value="660f1f440000" /> 
+      <Line Type="bytes" Address="0x0109e5b7" Value="0000003c" />
+    </PatchList>
+  </Metadata>
+</Patch>
