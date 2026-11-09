@@ -9,8 +9,11 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Batman: Arkham Knight (01.15) | 1620p, 1800p, native 4K | |
 | Battlefield 4 (01.24) | 1440p, 1620p, 1800p, 4K | 1800p holds 60 fps. 4K runs around 49 fps. |
 | Battlefield Hardline (01.09) | 1440p, 1620p, 1800p, 4K | |
+| Bayonetta (01.01) | 4k | Stock render is 1440p. VRR breaks cutscenes in this title |
 | Bloodborne (01.09) | 1440p, 1620p, 1800p, native 4K | 1800p and native 4K need 8GB Mode. **Tested on firmware 13.20 only.** |
 | Dark Souls III: The Fire Fades Edition (01.03) | 1440p, 1620p, 1800p, native 4K | The game already runs in PS4 Pro mode. Native 4K needs 8GB Mode. **Tested on firmware 13.20 only.** |
+| DEVIL MAY CRY 4 Special Edition (1.02) | 1440p, Native 4K resolution patches, 120 FPS patch | |
+| Devil May Cry HD Collection (1.01) | 4K patches for all three games, 120 FPS patch for DMC3 | |
 | Dishonored 2 (01.07) | 1620p, 1800p, Native 4K, 60 FPS, 120 FPS, Skip intro videos | The game already runs in PS4 Pro mode at 1440p. Native 4K renders at full 4K (no dynamic resolution); GPU boost at 2200 MHz is recommended. All resolution entries use sharper anti-aliasing. 60 FPS works alone or with any resolution entry. 120 FPS needs a TV or monitor that accepts 120 Hz; the manager turns the 120 Hz output on. Only one frame rate entry can be on at a time. |
 | Dishonored Definitive Edition (01.03) | 1440p, 1800p, Native 4K, 60 FPS (triple buffering) | 60 FPS (triple buffering) lets the frame rate sit between 30 and 60 and works alone or with any resolution entry. |
 | Dragon Age: Inquisition (01.12) | 1440p, 1620p, 1800p, Native 4K, 60 FPS, 120 FPS | Base PS4 game. Stock memory (no 8GB Mode). 60 FPS is the patch by illusion plus a fix for a periodic hitch while moving; it works alone or with any resolution entry. With 60 FPS, 1800p holds 60 fps and Native 4K runs around 48 fps. 120 FPS is the same patch with a 120 fps limit; it needs a TV or monitor that accepts 120 Hz, and the manager turns the 120 Hz output on. Only one frame rate entry can be on at a time. |
@@ -19,13 +22,14 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Driveclub (01.28) | 1440p, 4K (1620p render), 4K (1800p render) | **Tested on firmware 13.20 only.** 4K with 1800p render runs close to 60 fps. 4K with 1620p or 1800p render may show visual artifacts in the clouds. All entries include illusion and u/Charlie_Muggins' 60 FPS game speed fix, so the game runs at normal speed above 30 fps. |
 | The Evil Within (01.06) | 1440p, 1800p, native 4K | The 3D scene keeps the game's letterbox (2.5:1). 1800p fits the stock memory with a smaller map heap. Native 4K needs 8GB Mode (**tested on firmware 13.20 only**). |
 | The Evil Within 2 (01.05) | 1620p, 1800p, native 4K | The game already runs in PS4 Pro mode (2240x1260 render, 2160p output); these entries raise the render resolution, which stays fixed. Native 4K needs 8GB Mode (**tested on firmware 13.20 only**). The in-game Framerate Lock option unlocks up to 60 fps. |
+| Final Fantasy XV (01.29) | 1440p and 1944p resolution patches, 60 FPS High/Steady mode | Stock High / Steady are capped at 30 fps. Lite / Steady 1080p and High 1920x2160p checkerboard. |
 | Gravity Rush Remastered (01.00) | 1440p, native 4K, 120 FPS | Resolution patches by Criminal; Junminlee 120 fps fix. Wind Vector removed from foliage (leaf) to fix bug, not noticeable. |
 | Gravity Rush 2 (01.11) | 1440p, 1620p, 1800p, native 4K, 60 FPS | Native 4K by Criminal; the other resolutions use the same patch at their size. Native 4K needs the PS5 video output set to 2160p. 60 FPS by illusion. |
 | inFAMOUS Second Son (01.07) | 4K checkerboard | The game already runs in PS4 Pro mode with a 3200x1800 checkerboard render; this entry raises it to 3840x2160. |
 | Just Cause 3 (01.05) | 1440p, 4K | Also enable "Offline mode", or the game keeps trying to log in. |
 | Killzone Shadow Fall (01.81) | 1440p, 1620p, 1800p, 4K | 4K is below 60 fps. |
 | Mad Max (01.06) | 1440p, 1800p, native 4K | |
-| MediEvil: 120 HZ, 1440p, 1800p, Native 4K patches | [Criminal](https://github.com/TheaCriminal) | Native PS4 Pro game (Stock Pro render is 1080p) |
+| MediEvil (1.02) | 1440p, 1800p, native 4k | Native PS4 Pro game (Stock Pro render is 1080p) |
 | Metal Gear Solid V: The Phantom Pain (01.16) | 1440p, 1620p, 1800p, native 4K, 4K checkerboard | Native PS4 Pro game (stock Pro render is 2560x1440 checkerboard). The native entries turn checkerboard off and have no anti-aliasing; 4K checkerboard keeps the game's anti-aliasing. Stock memory. **Tested on firmware 13.20 only.** |
 | Middle-earth: Shadow of Mordor - Game of the Year Edition (01.05) | 1440p, 1620p, 1800p, Native 4K | PS4 Pro game. Select the quality mode in the game options. Stock memory (no 8GB Mode). |
 | Need for Speed Rivals (01.04, 01.03) | 1440p, 4K | If your existing patch file for the game has "Resolution Patch", keep it off. |
