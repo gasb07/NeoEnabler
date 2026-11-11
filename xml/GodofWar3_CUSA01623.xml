@@ -355,7 +355,7 @@
       <Line Type="bytes" Address="0x48ff0a" Value="488d05a7c12600" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="Disable Motion Blur" Note="Turns off the camera and object motion blur." PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="Disable Motion Blur" Note="Turns off the camera and object motion blur." Author="Libraaaaa2792 (motion blur site: SpartanPort)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x56af5e" Value="90e968010000" />
     </PatchList>
