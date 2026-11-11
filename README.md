@@ -192,6 +192,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | The Evil Within: 1440p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
 | The Evil Within 2: 1620p, 1800p, Native 4K resolution patches; 4K requires 8 GiB mode | gasb07 | |
 | Final Fantasy XV: 1440p and 1944p resolution patches, 60 FPS High/Steady mode | [Criminal](https://github.com/TheaCriminal) | |
+| God of War III: 1440p, 1800p, Native 4K resolution patches, 120 FPS | ibraaaaa2792 (resolution sites: kvicken + cuesta4) | |
 | Gravity Rush Remastered: 1440p and 4K resolution patches, 120 FPS | [Criminal](https://github.com/TheaCriminal), [Junmin Lee](https://github.com/junminlee2004) | gasb07 Neo Findings |
 | Gravity Rush 2: 1440p, 1620p, 1800p, Native 4K resolution patches, 60 FPS | [Criminal](https://github.com/TheaCriminal), gasb07, [illusion](https://github.com/illusionyy) | |
 | inFAMOUS Second Son: 4K checkerboard resolution patch | gasb07 | |
