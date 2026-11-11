@@ -49,7 +49,7 @@
       <Line Type="bytes" Address="0x5a5230" Value="e89b8221000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Video memory pool 2.75 GiB, 1.5 GiB of it for textures (needs 8GB Mode). Use it if the other 1440p entry fails to boot or shows missing textures. Enable only one resolution entry and no other resolution patch for the game. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Video memory pool 2.75 GiB, 1.5 GiB of it for textures (needs 8GB Mode). Use it if the other 1440p entry fails to boot or shows missing textures. Enable only one resolution entry and no other resolution patch for the game. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0c5b" Value="000a0000" />
       <Line Type="bytes" Address="0x5f0c63" Value="a0050000" />
@@ -91,7 +91,7 @@
       <Line Type="bytes" Address="0x5a5230" Value="e89b8221000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="1800p (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="3200x1800 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="1800p (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="3200x1800 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0c5b" Value="800c0000" />
       <Line Type="bytes" Address="0x5f0c63" Value="08070000" />
@@ -133,7 +133,7 @@
       <Line Type="bytes" Address="0x5a5230" Value="e89b8221000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="Native 4K (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="3840x2160 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="Native 4K (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="3840x2160 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0c5b" Value="000f0000" />
       <Line Type="bytes" Address="0x5f0c63" Value="70080000" />
@@ -215,7 +215,7 @@
       <Line Type="bytes" Address="0x5a5100" Value="e88b8421000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0b2b" Value="000a0000" />
       <Line Type="bytes" Address="0x5f0b33" Value="a0050000" />
@@ -257,7 +257,7 @@
       <Line Type="bytes" Address="0x5a5100" Value="e88b8421000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="1800p (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="3200x1800 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="1800p (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="3200x1800 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0b2b" Value="800c0000" />
       <Line Type="bytes" Address="0x5f0b33" Value="08070000" />
@@ -299,7 +299,7 @@
       <Line Type="bytes" Address="0x5a5100" Value="e88b8421000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="Native 4K (PS4 Pro mode, 8GB Mode)" NeoRequires="pro,8gib" Note="3840x2160 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="Native 4K (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="3840x2160 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0b2b" Value="000f0000" />
       <Line Type="bytes" Address="0x5f0b33" Value="70080000" />
