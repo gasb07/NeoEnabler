@@ -23,6 +23,7 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | The Evil Within (01.06) | 1440p, 1800p, native 4K | The 3D scene keeps the game's letterbox (2.5:1). 1800p fits the stock memory with a smaller map heap. Native 4K needs 8GB Mode (**tested on firmware 13.20 only**). |
 | The Evil Within 2 (01.05) | 1620p, 1800p, native 4K | The game already runs in PS4 Pro mode (2240x1260 render, 2160p output); these entries raise the render resolution, which stays fixed. Native 4K needs 8GB Mode (**tested on firmware 13.20 only**). The in-game Framerate Lock option unlocks up to 60 fps. |
 | Final Fantasy XV (01.29) | 1440p and 1944p resolution patches, 60 FPS High/Steady mode | Stock High / Steady are capped at 30 fps. Lite / Steady 1080p and High 1920x2160p checkerboard. |
+| God of War III (1.02) | 1440p, 1800p, Native 4K resolution patches, 120 FPS | Base PS4 game 1080p 60 FPS. | 
 | Gravity Rush Remastered (01.00) | 1440p, native 4K, 120 FPS | Resolution patches by Criminal; Junminlee 120 fps fix. Wind Vector removed from foliage (leaf) to fix bug, not noticeable. |
 | Gravity Rush 2 (01.11) | 1440p, 1620p, 1800p, native 4K, 60 FPS | Native 4K by Criminal; the other resolutions use the same patch at their size. Native 4K needs the PS5 video output set to 2160p. 60 FPS by illusion. |
 | inFAMOUS Second Son (01.07) | 4K checkerboard | The game already runs in PS4 Pro mode with a 3200x1800 checkerboard render; this entry raises it to 3840x2160. |
