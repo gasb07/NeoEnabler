@@ -13,7 +13,7 @@ so NeoEnabler is only useful for the games listed below.
 You pick the patches in the NeoEnabler panel. A game starts in Pro mode, and gets the 8 GiB memory budget, only
 when one of its enabled patches needs it; every other game starts as usual.
 
-Version 0.3.5 supports the 8 GiB memory budget without an HV unlock on firmware 13.20 and 13.60.
+Version 0.3.5 supports the 8 GiB memory budget without an HV unlock on firmware 13.20 and 13.60 with 10.01 and 12.70 being experimental.
 See [validation and limitations](docs/8GB-NO-HV-1360.md): 13.20 has a Bloodborne gameplay and restoration test;
 13.60 has community reports of Bloodborne 4K gameplay with 8 GiB enabled and a successful launch after the availability fix.
 8 GiB support on firmware 10.01 and 12.70 is **experimental**: each has one community report of Bloodborne running with
