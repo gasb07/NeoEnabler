@@ -39,6 +39,7 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Prey (01.12) | 1620p, 1800p, native 4K, 60 FPS, Skip intro videos | **Requires NeoEnabler 0.5.0 or newer.** The game already runs in PS4 Pro mode at 1440p with dynamic resolution; these entries render at a fixed full resolution. 60 FPS works alone or with any resolution entry. |
 | Ratchet & Clank (01.09) | 1728p, 1872p, native 4K | Native PS4 Pro game. The game only allows these steps, so 1728p and 1872p replace 1620p and 1800p. **Tested on firmware 13.20 only.** |
 | Rayman Legends (01.01) | 1440p, 1620p, 1800p, native 4K | Stock memory (no 8GB Mode). |
+| Red Dead Redemption 2 (01.32) | 4k, 60 FPS, Skip Intro | Stock Game is 1920x2160 checkerboard with 30 FPS. |
 | Resident Evil 6 (01.01) | 1440p, 4K | Small Capcom logo in 4K. |
 | Shadow of the Colossus (01.01) | 1620p, 1800p, native 4K | Native PS4 Pro game, quality mode. All entries use stock memory (no 8GB Mode). The community 60 FPS, Debug Menu and Skip Splash entries by illusion are kept. **Tested on firmware 13.20 only.** |
 | Sleeping Dogs: Definitive Edition (01.01) | 1440p, 1620p, 1800p, native 4K, each also up to 60 fps | The 60 fps entries use triple buffering: no tearing, slight stutter. 1800p up to 60 fps runs at 53-57 fps, native 4K up to 60 fps at 41-44 fps. |
