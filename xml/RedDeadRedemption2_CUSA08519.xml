@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA08519</ID>
+    <ID>CUSA03041</ID>
+  </TitleID>
+  <Metadata Title="Red Dead Redemption 2" Name="4K (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="3840x2160 instead of 1920x2160" Author="Criminal" PatchVer="1.0" AppVer="01.32" AppElf="eboot.bin">
+    <PatchList>
+        <Line Type="bytes" Address="0x0078708d" Value="31c0660f1f440000" />
+        <Line Type="bytes" Address="0x0059ea26" Value="b9000000006690" />
+        <Line Type="bytes" Address="0x005a2762" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x0072a9c4" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x00a24bac" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x015b58b1" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x015c7e94" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x017635eb" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x0176e791" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x01771789" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x017777bb" Value="b1000f1f4000" />
+        <Line Type="bytes" Address="0x017a929c" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x017e26f2" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x017e2e3f" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x017e328b" Value="b1000f1f440000" />
+        <Line Type="bytes" Address="0x01f33469" Value="00" />
+        <Line Type="bytes" Address="0x0584b9bb" Value="0000b090" />
+        <Line Type="bytes" Address="0x0584b9d6" Value="0000b090" />
+        <Line Type="bytes" Address="0x0584ba79" Value="0000b090" />
+        <Line Type="bytes" Address="0x00784245" Value="000f000070080000" />
+        <Line Type="bytes" Address="0x00587b8a" Value="6690" />
+        <Line Type="bytes" Address="0x00587da3" Value="6690" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Red Dead Redemption 2" Name="60 FPS" Note="60 FPS" Author="Jao" PatchVer="1.0" AppVer="01.32" AppElf="eboot.bin">
+    <PatchList>
+        <Line Type="bytes" Address="0x05853029" Value="31f690" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Red Dead Redemption 2" Name="Skip Intro" Note="Skips the boot/intro flow" Author="Criminal, Illusion" PatchVer="1.0" AppVer="01.32" AppElf="eboot.bin">
+    <PatchList>
+        <Line Type="bytes" Address="0x009b85b0" Value="909090909090" />
+    </PatchList>
+  </Metadata>
+</Patch>
