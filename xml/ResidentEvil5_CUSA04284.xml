@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <TitleID>
+    <ID>CUSA04284</ID>
+    <ID>CUSA04437</ID>
+  </TitleID>
+  <Metadata Title="RESIDENT EVIL 5" Name="1440p (PS4 Pro mode)" NeoRequires="pro" Note="2560x1440 output and render in PS4 Pro mode. Enable only one resolution entry. Requires NEO Enabler." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="mask" Address="44 24 18 00 00 00 00 45 31 c0 41 b9 01 00 00 00 e8 57 71 21 00 49 89 c4 4c 89 e2 48 c1 ea 20 48 8d 05 76 e0 98" Offset="16" Value="e8d75b3a00" />
+      <Line Type="bytes" Address="0x12ead00" Value="4883c408e87715e7ff4889c248c1ea203d0000fe0174213d0000e100720e3d0000f0007707b80000f000eb0c3d00807f007512b80000870081fa000001007305ba0000010089c048c1e2204809d0e9d6a3c5ff" />
+      <Line Type="mask" Address="40 e9 9e 00 00 00 49 8b 46 40 f7 c1 00 00 00 20 74 79 48 c7 45 b8 00 00 00 00 b9 14 05 00 00 49 8d 7f" Offset="16" Value="eb79" />
+      <Line Type="mask" Address="ff 25 a2 d5 4e 00 68 d6 01 00 00 e9 80 e2 ff ff ff 25 9a d5 4e 00 68 d7 01 00 00 e9 70 e2 ff ff ff 25 92 d5 4e 00" Offset="16" Value="e91b9b000090" />
+      <Line Type="bytes" Address="0x12ea800" Value="505351525657415041514152415341544155415641579c4189fc4989f54989d64181fc000400000f87f100000031db4439e30f83e60000004d8b44dd00458b0c9e41c1e9024d85c00f84c900000031c94439c90f83be000000418b048889c2c1ea1e83fa027504ffc1ebe583fa030f85a30000004189c241c1ea104181e2ff3f00004183c202428d14114439ca0f87840000004189c341c1eb084181e3ff0000004183fb697568418b7c880481e7ffff0000448d5902448d79024139d3735083ff10750a43812498ffffffdfeb3a89f82d1803000083f878732e83f80f720583e80febf683f805751f4539fb741a438b049883e01f83f80a740583f80c750943814c98fc00000080ffc741ffc3ebab4401d1e939ffffffffc3e911ffffff0faef89d415f415e415d415c415b415a415941585f5e5a595b58ff242580e27c01" />
+      <Line Type="mask" Address="a9 06 04 74 65 a8 04 74 18 41 c7 85 b8 00 00 00 80 07 00 00 41 c7 85 bc 00 00 00 38 04 00 00 eb 3e f6 c4 04 74 18 41 c7 85 b8 00 00 00 40 06" Offset="16" Value="000a000041c785bc000000a0050000" />
+      <Line Type="mask" Address="74 0c 48 b8 00 05 00 00 d0 02 00 00 eb 0a 48 b8 80 07 00 00 38 04 00 00 49 89 85 b8 00 00 00 41 c7 85 f4 00 00 00 02 00" Offset="16" Value="000a0000a0050000" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="RESIDENT EVIL 5" Name="Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output and render in PS4 Pro mode. Enable only one resolution entry. Requires NEO Enabler and the PS5 set to 2160p." Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="mask" Address="44 24 18 00 00 00 00 45 31 c0 41 b9 01 00 00 00 e8 57 71 21 00 49 89 c4 4c 89 e2 48 c1 ea 20 48 8d 05 76 e0 98" Offset="16" Value="e8d75b3a00" />
+      <Line Type="bytes" Address="0x12ead00" Value="4883c408e87715e7ff4889c248c1ea203d0000fe0174213d0000e100720e3d0000f0007707b80000f000eb0c3d00807f007512b80000870081fa000001007305ba0000010089c048c1e2204809d0e9d6a3c5ff" />
+      <Line Type="mask" Address="40 e9 9e 00 00 00 49 8b 46 40 f7 c1 00 00 00 20 74 79 48 c7 45 b8 00 00 00 00 b9 14 05 00 00 49 8d 7f" Offset="16" Value="eb79" />
+      <Line Type="mask" Address="ff 25 a2 d5 4e 00 68 d6 01 00 00 e9 80 e2 ff ff ff 25 9a d5 4e 00 68 d7 01 00 00 e9 70 e2 ff ff ff 25 92 d5 4e 00" Offset="16" Value="e91b9b000090" />
+      <Line Type="bytes" Address="0x12ea800" Value="505351525657415041514152415341544155415641579c4189fc4989f54989d64181fc000400000f87f100000031db4439e30f83e60000004d8b44dd00458b0c9e41c1e9024d85c00f84c900000031c94439c90f83be000000418b048889c2c1ea1e83fa027504ffc1ebe583fa030f85a30000004189c241c1ea104181e2ff3f00004183c202428d14114439ca0f87840000004189c341c1eb084181e3ff0000004183fb697568418b7c880481e7ffff0000448d5902448d79024139d3735083ff10750a43812498ffffffdfeb3a89f82d1803000083f878732e83f80f720583e80febf683f805751f4539fb741a438b049883e01f83f80a740583f80c750943814c98fc00000080ffc741ffc3ebab4401d1e939ffffffffc3e911ffffff0faef89d415f415e415d415c415b415a415941585f5e5a595b58ff242580e27c01" />
+      <Line Type="mask" Address="a9 06 04 74 65 a8 04 74 18 41 c7 85 b8 00 00 00 80 07 00 00 41 c7 85 bc 00 00 00 38 04 00 00 eb 3e f6 c4 04 74 18 41 c7 85 b8 00 00 00 40 06" Offset="16" Value="000f000041c785bc00000070080000" />
+      <Line Type="mask" Address="74 0c 48 b8 00 05 00 00 d0 02 00 00 eb 0a 48 b8 80 07 00 00 38 04 00 00 49 89 85 b8 00 00 00 41 c7 85 f4 00 00 00 02 00" Offset="16" Value="000f000070080000" />
+    </PatchList>
+  </Metadata>
+  <Metadata Title="RESIDENT EVIL 5" Name="120 FPS" NeoRequires="120hz" Note="Enables 120 HZ / 120 FPS with Neoenabler" Author="Criminal" PatchVer="1.0" AppVer="01.01" AppElf="eboot.bin">
+    <PatchList>
+    </PatchList>
+  </Metadata>
+</Patch>
