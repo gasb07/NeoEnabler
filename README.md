@@ -210,6 +210,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | Ratchet and Clank: 1728p, 1872p, Native 4K resolution patches | gasb07 | |
 | Rayman Legends: 1440p, 1620p, 1800p, Native 4K resolution patches | gasb07 | |
 | Red Dead Redemption 2: 4k, 60 FPS, Skip Intro | [Criminal](https://github.com/TheaCriminal), Illusion, Jao  | PS Game Patch |
+| RESIDENT EVIL 5: 1440p and Native 4K resolution patches + 120 FPS | [Criminal](https://github.com/TheaCriminal) | |
 | RESIDENT EVIL 6: 1440p and Native 4K resolution patches | gasb07 | |
 | Rise of the Tomb Raider: 1440p, 1800p, 4k, 120FPS | [Criminal](https://github.com/TheaCriminal) | |
 | Shadow of the Colossus: 1620p, 1800p, Native 4K resolution patches, debug menu, skip splash logo/demo screens, 60 FPS patch | gasb07, [illusion](https://github.com/illusionyy) | |
