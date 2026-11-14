@@ -214,6 +214,7 @@ Test results by game and firmware: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md
 | RESIDENT EVIL 6: 1440p and Native 4K resolution patches | gasb07 | |
 | Rise of the Tomb Raider: 1440p, 1800p, 4k, 120FPS | [Criminal](https://github.com/TheaCriminal) | |
 | Senran Kagura Estival Versus: 1440p and Native 4K resolution patches | [Criminal](https://github.com/TheaCriminal) | |
+| Senran Kagura Peach Beach Splash: 1440p and Native 4K resolution patches | [Criminal](https://github.com/TheaCriminal) | |
 | Shadow of the Colossus: 1620p, 1800p, Native 4K resolution patches, debug menu, skip splash logo/demo screens, 60 FPS patch | gasb07, [illusion](https://github.com/illusionyy) | |
 | Sleeping Dogs: Definitive Edition: 1440p, 1620p, 1800p, Native 4K resolution patches; 60 FPS variants for each resolution | gasb07, [illusion](https://github.com/illusionyy) | |
 | Spyro Reignited Trilogy: 1620p, 1800p, Native 4K resolution patches | Shane O'Reilly | |
