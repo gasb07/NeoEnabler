@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Patch>
+  <TitleID>
+    <ID>CUSA08343</ID>
+    <ID>CUSA08373</ID>
+    <ID>CUSA06071</ID>
+  </TitleID>
+  <Metadata Title="Senran Kagura Peach Beach Splash" Name="1440p (PS4 Pro mode)" Note="Fixes back compat shadow glitching" NeoRequires="pro" Author="Criminal" PatchVer="1.0" AppVer="01.04" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x8804c5" Value="9090"/>
+      <Line Type="bytes" Address="0x880527" Value="000a0000"/>
+      <Line Type="bytes" Address="0x88053a" Value="a0050000"/>
+      <Line Type="bytes" Address="0x82ec46" Value="a0050000"/>
+      <Line Type="bytes" Address="0x82ec51" Value="000a0000"/>
+      <Line Type="bytes" Address="0x84149d" Value="00"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Senran Kagura Peach Beach Splash" Name="Native 4K (PS4 Pro mode, requires 8 GiB enabled)" Note="Fixes back compat shadow glitching" NeoRequires="pro,8gib" Author="Criminal" PatchVer="1.0" AppVer="01.04" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x8804c5" Value="9090"/>
+      <Line Type="bytes" Address="0x82ec46" Value="70080000"/>
+      <Line Type="bytes" Address="0x82ec51" Value="000f0000"/>
+      <Line Type="bytes" Address="0x880449" Value="00000014"/>
+      <Line Type="bytes" Address="0x82ec5c" Value="0000000a"/>
+      <Line Type="bytes" Address="0x82ec83" Value="0000000a"/>
+      <Line Type="bytes" Address="0x888a23" Value="00009226"/>
+      <Line Type="bytes" Address="0x888acc" Value="00009226"/>
+      <Line Type="bytes" Address="0x888b5c" Value="00009226"/>
+      <Line Type="bytes" Address="0x84149d" Value="00"/>
+    </PatchList>
+  </Metadata>
+</Patch>
