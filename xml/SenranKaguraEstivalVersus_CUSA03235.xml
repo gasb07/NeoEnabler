@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Patch>
+  <TitleID>
+    <ID>CUSA03235</ID>
+    <ID>CUSA03464</ID>
+    <ID>CUSA00893</ID>
+  </TitleID>
+  <Metadata Title="Senran Kagura Estival Versus" Name="1080p (PS4 Pro mode)" Note="Fixes the broken shadows back compatibility bug" NeoRequires="pro" Author="Criminal" PatchVer="1.0" AppVer="01.21" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x78c821" Value="e8da3b45009090"/>
+      <Line Type="bytes" Address="0xbe0400" Value="48898394000000f6432804743e814b58000000808b4b4c81e1ff070000ffc1c1e1038b532483c27f83e2800fafd1c1e20281c2ffff000081e20000ffff3b93940000007606899394000000c3"/>
+      <Line Type="bytes" Address="0x78c8ee" Value="e80d3e4500"/>
+      <Line Type="bytes" Address="0x78df99" Value="e862274500"/>
+      <Line Type="bytes" Address="0xbe0700" Value="57564883ec08e85504c7ff4883c4085e5ff74610000000807407814f1800000001c3"/>
+      <Line Type="bytes" Address="0x83b8ab" Value="e8504c3a00909090909090"/>
+      <Line Type="bytes" Address="0xbe0500" Value="498b4610c74034001000c08b0b85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381481800000080c3"/>
+      <Line Type="bytes" Address="0x83e22e" Value="e8cd233a00"/>
+      <Line Type="bytes" Address="0xbe0600" Value="4883431028418b0e85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381482800000001c3"/>
+      <Line Type="bytes" Address="0x83a092" Value="41804f0300"/>
+      <Line Type="bytes" Address="0x78d285" Value="31f690"/>
+      <Line Type="bytes" Address="0x7b23ca" Value="0000d004"/>
+      <Line Type="bytes" Address="0x7b23f5" Value="0000d004"/>
+      <Line Type="bytes" Address="0x7b81bf" Value="00004006"/>
+      <Line Type="bytes" Address="0x7b8245" Value="00004006"/>
+      <Line Type="bytes" Address="0x8529b4" Value="e847dc3800"/>
+      <Line Type="bytes" Address="0x78d7dd" Value="e81e304500"/>
+      <Line Type="bytes" Address="0xbe0800" Value="57e80af3c7ff5f833f027506c70700000000c3"/>
+      <Line Type="bytes" Address="0x78da3f" Value="00"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Senran Kagura Estival Versus" Name="1440p (PS4 Pro mode)" Note="Fixes the broken shadows back compatibility bug" NeoRequires="pro" Author="Criminal" PatchVer="1.0" AppVer="01.21" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x78c821" Value="e8da3b45009090"/>
+      <Line Type="bytes" Address="0xbe0400" Value="48898394000000f6432804743e814b58000000808b4b4c81e1ff070000ffc1c1e1038b532483c27f83e2800fafd1c1e20281c2ffff000081e20000ffff3b93940000007606899394000000c3"/>
+      <Line Type="bytes" Address="0x78c8ee" Value="e80d3e4500"/>
+      <Line Type="bytes" Address="0x78df99" Value="e862274500"/>
+      <Line Type="bytes" Address="0xbe0700" Value="57564883ec08e85504c7ff4883c4085e5ff74610000000807407814f1800000001c3"/>
+      <Line Type="bytes" Address="0x83b8ab" Value="e8504c3a00909090909090"/>
+      <Line Type="bytes" Address="0xbe0500" Value="498b4610c74034001000c08b0b85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381481800000080c3"/>
+      <Line Type="bytes" Address="0x83e22e" Value="e8cd233a00"/>
+      <Line Type="bytes" Address="0xbe0600" Value="4883431028418b0e85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381482800000001c3"/>
+      <Line Type="bytes" Address="0x83a092" Value="41804f0300"/>
+      <Line Type="bytes" Address="0x78d285" Value="31f690"/>
+      <Line Type="bytes" Address="0x7b23ca" Value="00006007"/>
+      <Line Type="bytes" Address="0x7b23f5" Value="00006007"/>
+      <Line Type="bytes" Address="0x7b81bf" Value="0000a009"/>
+      <Line Type="bytes" Address="0x7b8245" Value="0000a009"/>
+      <Line Type="bytes" Address="0x8529b4" Value="e847dc3800"/>
+      <Line Type="bytes" Address="0x7b24b1" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x7b251d" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x7b34b7" Value="e944d44200"/>
+      <Line Type="bytes" Address="0xbe0900" Value="488b050909ae004885c07463440fb74818440fb7501ac4c16a2ad141bb0000f044c4c1796ee3c5ea5ed4c4c1622ada41bb00008744c4c1796ee3c5e25edcc5da2ae6c5da59e2c5fa2df4c5da2ae2c5da59e3c5fa2dd4c5da2ae1c5da59e2c5fa2dccc4c15a2ae0c5da59e3c57a2dc4e9fce0c7ff"/>
+      <Line Type="bytes" Address="0x77f32f" Value="00000002"/>
+      <Line Type="bytes" Address="0x77f340" Value="00000002"/>
+      <Line Type="bytes" Address="0x77f363" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f491" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f4eb" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f545" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f3b9" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f423" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f62f" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f675" Value="be000a0000baa0050000"/>
+      <Line Type="bytes" Address="0x77f616" Value="be00050000bad0020000"/>
+      <Line Type="bytes" Address="0x77cebc" Value="be00050000bad0020000"/>
+      <Line Type="bytes" Address="0x423051" Value="00008000"/>
+      <Line Type="bytes" Address="0x423089" Value="00008000"/>
+      <Line Type="bytes" Address="0x78d7dd" Value="e81e304500"/>
+      <Line Type="bytes" Address="0xbe0800" Value="57e80af3c7ff5f833f027506c70700000000c3"/>
+      <Line Type="bytes" Address="0x78da3f" Value="00"/>
+    </PatchList>
+  </Metadata>
+  <Metadata Title="Senran Kagura Estival Versus" Name="Native 4K (PS4 Pro mode)" Note="Fixes the broken shadows back compatibility bug" NeoRequires="pro" Author="Criminal" PatchVer="1.0" AppVer="01.21" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x78c821" Value="e8da3b45009090"/>
+      <Line Type="bytes" Address="0xbe0400" Value="48898394000000f6432804743e814b58000000808b4b4c81e1ff070000ffc1c1e1038b532483c27f83e2800fafd1c1e20281c2ffff000081e20000ffff3b93940000007606899394000000c3"/>
+      <Line Type="bytes" Address="0x78c8ee" Value="e80d3e4500"/>
+      <Line Type="bytes" Address="0x78df99" Value="e862274500"/>
+      <Line Type="bytes" Address="0xbe0700" Value="57564883ec08e85504c7ff4883c4085e5ff74610000000807407814f1800000001c3"/>
+      <Line Type="bytes" Address="0x83b8ab" Value="e8504c3a00909090909090"/>
+      <Line Type="bytes" Address="0xbe0500" Value="498b4610c74034001000c08b0b85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381481800000080c3"/>
+      <Line Type="bytes" Address="0x83e22e" Value="e8cd233a00"/>
+      <Line Type="bytes" Address="0xbe0600" Value="4883431028418b0e85c97419bed80c6c01ba030000003b0e740c4881c6a8010000ffca75f1c381482800000001c3"/>
+      <Line Type="bytes" Address="0x83a092" Value="41804f0300"/>
+      <Line Type="bytes" Address="0x78d285" Value="31f690"/>
+      <Line Type="bytes" Address="0x7b23ca" Value="00004010"/>
+      <Line Type="bytes" Address="0x7b23f5" Value="00004010"/>
+      <Line Type="bytes" Address="0x7b81bf" Value="00000015"/>
+      <Line Type="bytes" Address="0x7b8245" Value="00000015"/>
+      <Line Type="bytes" Address="0x8529b4" Value="e847dc3800"/>
+      <Line Type="bytes" Address="0x7b24b1" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x7b251d" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x7b34b7" Value="e944d44200"/>
+      <Line Type="bytes" Address="0xbe0900" Value="488b050909ae004885c07463440fb74818440fb7501ac4c16a2ad141bb0000f044c4c1796ee3c5ea5ed4c4c1622ada41bb00008744c4c1796ee3c5e25edcc5da2ae6c5da59e2c5fa2df4c5da2ae2c5da59e3c5fa2dd4c5da2ae1c5da59e2c5fa2dccc4c15a2ae0c5da59e3c57a2dc4e9fce0c7ff"/>
+      <Line Type="bytes" Address="0x77f32f" Value="00008004"/>
+      <Line Type="bytes" Address="0x77f340" Value="00008004"/>
+      <Line Type="bytes" Address="0x77f363" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f491" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f4eb" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f545" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f3b9" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f423" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f62f" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f675" Value="be000f0000ba70080000"/>
+      <Line Type="bytes" Address="0x77f616" Value="be80070000ba38040000"/>
+      <Line Type="bytes" Address="0x77cebc" Value="be80070000ba38040000"/>
+      <Line Type="bytes" Address="0x423051" Value="00000001"/>
+      <Line Type="bytes" Address="0x423089" Value="00000001"/>
+      <Line Type="bytes" Address="0x78d7dd" Value="e81e304500"/>
+      <Line Type="bytes" Address="0xbe0800" Value="57e80af3c7ff5f833f027506c70700000000c3"/>
+      <Line Type="bytes" Address="0x78da3f" Value="00"/>
+    </PatchList>
+  </Metadata>
+</Patch>
