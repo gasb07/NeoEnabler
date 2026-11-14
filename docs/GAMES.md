@@ -42,6 +42,7 @@ and enable the patches: [Game patches](../README.md#game-patches).
 | Red Dead Redemption 2 (01.32) | 4k, 60 FPS, Skip Intro | Stock Game is 1920x2160 checkerboard with 30 FPS. |
 | Resident Evil 5 (01.01) | 1440p, 4K, 120 FPS | |
 | Resident Evil 6 (01.01) | 1440p, 4K | Small Capcom logo in 4K. |
+| Senran Kagura Estival Versus (01.21) | 1440p and Native 4K resolution patches | The game has broken graphics unpatched on PS5 that were never fixed. This patch fixes that in addition to adding resolution patches |
 | Shadow of the Colossus (01.01) | 1620p, 1800p, native 4K | Native PS4 Pro game, quality mode. All entries use stock memory (no 8GB Mode). The community 60 FPS, Debug Menu and Skip Splash entries by illusion are kept. **Tested on firmware 13.20 only.** |
 | Sleeping Dogs: Definitive Edition (01.01) | 1440p, 1620p, 1800p, native 4K, each also up to 60 fps | The 60 fps entries use triple buffering: no tearing, slight stutter. 1800p up to 60 fps runs at 53-57 fps, native 4K up to 60 fps at 41-44 fps. |
 | Spyro Reignited Trilogy (01.00 disc, shown as 01.03) | 1620p, 1800p, native 4K | The game already runs in PS4 Pro mode: it renders 2560x1440 into a 1080p output. The entries output 2160p and need the PS5 video output set to 2160p; with 1080p output they render below the stock 1440p. 1620p leaves the most headroom for illusion's 60 FPS patch. |
