@@ -20,7 +20,7 @@ On 12.20, one console test of Bloodborne (CUSA00900) confirmed 8 GiB on launch a
 If you are on an experimental firmware, please report whether it works with the
 [Test result form](https://github.com/gasb07/NeoEnabler/issues/new?template=test-result.yml).
 
-PS4 Pro Mode + High Resolution + 120 HZ = FW 4.00 to 13.60
+PS4 Pro Mode + High Resolution + 120 HZ + CPU/GPU Clock Boost = FW 4.00 to 13.60
 
 8 GiB Memory Support = FW 9.00, 10.01, 12.20, 12.70, 13.20, 13.60
 
