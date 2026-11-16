@@ -52,7 +52,7 @@ The **8 GiB PS4 Pro memory budget** follows patches marked "8 GiB" in the panel.
 This mode requires:
 
 - **Firmware 13.20** or **13.60**.
-  **10.01, 12.20 and 12.70 are experimental**: the manager refuses the 8 GiB launch if the firmware does not match what it
+  **Other supported firmwares are experimental**: the manager refuses the 8 GiB launch if the firmware does not match what it
   expects, but a wrong value could still freeze the console.
 - A running NeoEnabler manager and the validated ShellCore launch hook. The DATA path does **not** require an HV
   unlock and does not read or patch kernel TEXT.
