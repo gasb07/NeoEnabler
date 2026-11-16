@@ -20,6 +20,12 @@ See [validation and limitations](docs/8GB-NO-HV-1360.md): 13.20 has a Bloodborne
 8 GiB enabled. If you are on one of them, please report whether it works with the
 [Test result form](https://github.com/gasb07/NeoEnabler/issues/new?template=test-result.yml).
 
+PS4 Pro Mode + High Resolution + 120 HZ = FW 4.00 to 13.60
+
+8 GiB Memory Support = FW 10.01, 12.70, 13.20, 13.60
+
+Most patches do not require 8 GiB
+
 ## What you need
 
 - A jailbroken PS5 on firmware 4.00 to 13.60 (tested on 13.20 and 13.60) with an ELF loader, such as etaHEN or elfldr.
