@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0
+
+- Experimental 8 GB support for 12.20 contributed by [Serotoniner](https://github.com/Serotoniner)
+- Experimental 8 GB support for 9.00 contributed by [nirajvenkat](https://github.com/nirajvenkat)
+
 ## 0.6.2
 
 - 8GB Mode on firmware 10.01 (PS5 Pro), experimental. (Contributed by squallsama, who tested it with Bloodborne
