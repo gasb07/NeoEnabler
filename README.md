@@ -13,20 +13,20 @@ so NeoEnabler is only useful for the games listed below.
 You pick the patches in the NeoEnabler panel. A game starts in Pro mode, and gets the 8 GiB memory budget, only
 when one of its enabled patches needs it; every other game starts as usual.
 
-Version 0.3.5 supports the 8 GiB memory budget without an HV unlock on firmware 13.20 and 13.60 with 10.01 and 12.70 being experimental.
-See [validation and limitations](docs/8GB-NO-HV-1360.md): 13.20 has a Bloodborne gameplay and restoration test;
-13.60 has community reports of Bloodborne 4K gameplay with 8 GiB enabled and a successful launch after the availability fix.
-8 GiB support on firmware 10.01, 12.20 and 12.70 is **experimental**. On 12.20, one console test of Bloodborne
-(CUSA00900) confirmed 8 GiB on launch and restoration of the stock DATA extension after closing the game.
+8 GiB memory budget without an HV unlock works on firmware 13.20 and 13.60 with other firmwares being **experimental**.
+See [validation and limitations](docs/8GB-NO-HV-1360.md):
+On 12.20, one console test of Bloodborne (CUSA00900) confirmed 8 GiB on launch and restoration of the stock DATA extension after closing the game.
 10.01 and 12.70 each have one community report of Bloodborne running with 8 GiB enabled.
-If you are on one of these firmwares, please report whether it works with the
+If you are on an experimental firmware, please report whether it works with the
 [Test result form](https://github.com/gasb07/NeoEnabler/issues/new?template=test-result.yml).
 
 PS4 Pro Mode + High Resolution + 120 HZ = FW 4.00 to 13.60
 
-8 GiB Memory Support = FW 10.01, 12.70, 13.20, 13.60
+8 GiB Memory Support = FW 9.00, 10.01, 12.20, 12.70, 13.20, 13.60
 
 Most patches do not require 8 GiB
+
+Each firmware needs offsets for 8 GiB to work and community support is required for that. 
 
 ## What you need
 
