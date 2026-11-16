@@ -39,7 +39,7 @@ static void log_line(const char *fmt, ...);
 #include "log_mirror.h"
 
 #define PORT 8765
-#define VERSION "NeoEnabler 0.6.2"
+#define VERSION "NeoEnabler 0.7.0"
 typedef struct {
     uint32_t app_id; uint64_t unknown1; char title_id[10]; uint32_t apptype; char unknown2[8];
     uint32_t attribute; /* param.sfo ATTRIBUTE as launched, including the hook change */
