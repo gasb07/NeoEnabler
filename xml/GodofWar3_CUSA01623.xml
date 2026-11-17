@@ -7,6 +7,46 @@
     <ID>CUSA01720</ID>
     <ID>CUSA01740</ID>
   </TitleID>
+    <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode)" NeoRequires="pro" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Enable only one resolution entry and no other resolution patch for the game. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.2" AppVer="01.02" AppElf="eboot.bin">
+    <PatchList>
+      <Line Type="bytes" Address="0x5f0c5b" Value="000a0000" />
+      <Line Type="bytes" Address="0x5f0c63" Value="a0050000" />
+      <Line Type="bytes" Address="0x5f0c6c" Value="000a" />
+      <Line Type="bytes" Address="0x5f0c73" Value="a005" />
+      <Line Type="bytes" Address="0x5643e3" Value="a0050000" />
+      <Line Type="bytes" Address="0x5643f0" Value="000a0000" />
+      <Line Type="bytes" Address="0x5ff889" Value="000a0000" />
+      <Line Type="bytes" Address="0x5ff88f" Value="a0050000" />
+      <Line Type="bytes" Address="0x7c46b4" Value="000a0000" />
+      <Line Type="bytes" Address="0x7c46b8" Value="a0050000" />
+      <Line Type="bytes" Address="0x56bb72" Value="a0050000" />
+      <Line Type="bytes" Address="0x60965d" Value="a0050000" />
+      <Line Type="bytes" Address="0x7f2a3c" Value="00050000" />
+      <Line Type="bytes" Address="0x7f2a40" Value="d0020000" />
+      <Line Type="bytes" Address="0x7cd918" Value="00000070" />
+      <Line Type="bytes" Address="0x56fc6c" Value="a005" />
+      <Line Type="bytes" Address="0x56fc77" Value="000a" />
+      <Line Type="bytes" Address="0x75b0c0" Value="cdcc4c3a" />
+      <Line Type="bytes" Address="0x75b0c8" Value="610bb63a" />
+      <Line Type="bytes" Address="0x63b5e3" Value="81cb00000000" />
+      <Line Type="bytes" Address="0x637e94" Value="81c900000000" />
+      <Line Type="bytes" Address="0x637f20" Value="c7430c00000000" />
+      <Line Type="bytes" Address="0x7bd440" Value="8b430085c0741f3b0543b90a0074103b058bb90a0074083b05d3b90a00750781491800000080498b4610c74034001000c0c3" />
+      <Line Type="bytes" Address="0x7bd480" Value="816008ffffffdf498b46108b4b2cc3" />
+      <Line Type="bytes" Address="0x7bd490" Value="8b9db8feffff448bbdc4feffff4883bda0feffff00751c81fb0000f0007305bb0000f0004181ff00000100730641bf00000100c3" />
+      <Line Type="bytes" Address="0x7bd4d0" Value="498b7e00814f18000000018b4700c3" />
+      <Line Type="bytes" Address="0x7bd4e0" Value="8b470085c0741f3b05a3b80a0074103b05ebb80a0074083b0533b90a007507814f1800000001c3" />
+      <Line Type="bytes" Address="0x7bd510" Value="897700806704c085f6741f3b356fb80a0074103b35b7b80a0074083b35ffb80a007507814f1800000001c3" />
+      <Line Type="bytes" Address="0x7bd540" Value="488b0db99f78014885c9752b488bcf48837950007507488b0d9b8d0b004c8b4138448b494c4b8d0c084881c1ffff00004881e10000ffff448bc24181f800010000730641b80001000049ffc84903c849f7d04923c8448bce4e8d14094c8b1d45bd0f01448b056e0301004d03d84d3bd3770b4c8915479f7801488bc1c3e92e17ddff" />
+      <Line Type="bytes" Address="0x55abe0" Value="e85b292600" />
+      <Line Type="bytes" Address="0x63ec40" Value="e9cbe81700" />
+      <Line Type="bytes" Address="0x5a43ea" Value="e8f1902100" />
+      <Line Type="bytes" Address="0x639e9b" Value="e8a0351800660f1f440000" />
+      <Line Type="bytes" Address="0x639fa7" Value="e8d43418006690" />
+      <Line Type="bytes" Address="0x55abaa" Value="e8e12826000f1f840000000000" />
+      <Line Type="bytes" Address="0x5a5230" Value="e89b8221000f1f00" />
+    </PatchList>
+  </Metadata>
   <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode, requires 8 GiB enabled)" NeoRequires="pro,8gib" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Video memory pool 2.75 GiB, 1.5 GiB of it for textures (needs 8GB Mode). Use it if the other 1440p entry fails to boot or shows missing textures. Enable only one resolution entry and no other resolution patch for the game. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.02" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0c5b" Value="000a0000" />
@@ -131,7 +171,7 @@
       <Line Type="bytes" Address="0x5a5230" Value="e89b8221000f1f00" />
     </PatchList>
   </Metadata>
-  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode)" NeoRequires="pro" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.0" AppVer="01.00" AppElf="eboot.bin">
+  <Metadata Title="God of War III Remastered" Name="1440p (PS4 Pro mode)" NeoRequires="pro" Note="2560x1440 output and render in PS4 Pro mode instead of 1920x1080. Enable only one resolution entry and no other resolution patch for the game. Requires NEO Enabler." Author="Libraaaaa2792 (resolution sites: kvicken + cuesta4)" PatchVer="1.2" AppVer="01.00" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x5f0b2b" Value="000a0000" />
       <Line Type="bytes" Address="0x5f0b33" Value="a0050000" />
@@ -161,12 +201,10 @@
       <Line Type="bytes" Address="0x7bd590" Value="498b7e00814f18000000018b4700c3" />
       <Line Type="bytes" Address="0x7bd5a0" Value="8b470085c0741f3b05e3b70a0074103b052bb80a0074083b0573b80a007507814f1800000001c3" />
       <Line Type="bytes" Address="0x7bd5d0" Value="897700806704c085f6741f3b35afb70a0074103b35f7b70a0074083b353fb80a007507814f1800000001c3" />
-      <Line Type="bytes" Address="0x7bd600" Value="575652e8b815ddff5a5e5f4885c00f857c000000488b0de59e78014885c9752b488bcf48837950007507488b0dc78c0b004c8b4138448b494c4b8d0c084881c1ffff00004881e10000ffff448bc24181f800010000730641b80001000049ffc84903c849f7d04923c8448bce4e8d14094c8b1d71bc0f01448b059a0201004d03d84d3bd3770a4c8915739e7801488bc1c3" />
-      <Line Type="bytes" Address="0x7bd6a0" Value="488bc848837950007507488b0d478c0b004c8b4138448b494c4d03c14c8b153d9e78014d3bd076034d8bc24981c0ffff00004981e00000ffff4c8b0d08bc0f01448b15310201004d03ca4d2bc84981f9000000047c1841ba0000ff7f4d3bca76034d8bca498bf8418bf1418bd9c34883ec08488bf88bf3ba00040000e89f14ddff4883c408488bf88bf3c3" />
+      <Line Type="bytes" Address="0x7bd600" Value="488b0df99e78014885c9752b488bcf48837950007507488b0ddb8c0b004c8b4138448b494c4b8d0c084881c1ffff00004881e10000ffff448bc24181f800010000730641b80001000049ffc84903c849f7d04923c8448bce4e8d14094c8b1d85bc0f01448b05ae0201004d03d84d3bd3770b4c8915879e7801488bc1c3e93e15ddff" />
       <Line Type="bytes" Address="0x55abe0" Value="e81b2a2600" />
       <Line Type="bytes" Address="0x63eb10" Value="e9bbea1700" />
       <Line Type="bytes" Address="0x5a42ba" Value="e8e1922100" />
-      <Line Type="bytes" Address="0x5ea3c5" Value="e8d6321d00660f1f8400000000000f1f44000090" />
       <Line Type="bytes" Address="0x639d6b" Value="e890371800660f1f440000" />
       <Line Type="bytes" Address="0x639e77" Value="e8c43618006690" />
       <Line Type="bytes" Address="0x55abaa" Value="e8a12926000f1f840000000000" />
