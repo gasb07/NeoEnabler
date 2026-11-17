@@ -6,7 +6,7 @@
     <ID>CUSA01089</ID>
     <ID>CUSA01764</ID>
   </TitleID>
-  <Metadata Title="Batman: Arkham Knight" Name="1620p (PS4 Pro mode)" NeoRequires="pro" Note="2880x1620 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.15" AppElf="eboot.bin">
+  <Metadata Title="Batman: Arkham Knight" Name="1620p (PS4 Pro mode)" NeoRequires="pro" Note="2880x1620 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.18" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x009f9fda" Value="e921e0bb01" />
       <Line Type="bytes" Address="0x009fa288" Value="e983ddbb01" />
@@ -26,7 +26,7 @@
       <Line Type="bytes32" Address="0x02b04018" Value="0x00000654" />
     </PatchList>
   </Metadata>
-  <Metadata Title="Batman: Arkham Knight" Name="1800p (PS4 Pro mode)" NeoRequires="pro" Note="3200x1800 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.15" AppElf="eboot.bin">
+  <Metadata Title="Batman: Arkham Knight" Name="1800p (PS4 Pro mode)" NeoRequires="pro" Note="3200x1800 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.18" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x009f9fda" Value="e921e0bb01" />
       <Line Type="bytes" Address="0x009fa288" Value="e983ddbb01" />
@@ -46,7 +46,7 @@
       <Line Type="bytes32" Address="0x02b04018" Value="0x00000708" />
     </PatchList>
   </Metadata>
-  <Metadata Title="Batman: Arkham Knight" Name="Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.15" AppElf="eboot.bin">
+  <Metadata Title="Batman: Arkham Knight" Name="Native 4K (PS4 Pro mode)" NeoRequires="pro" Note="3840x2160 output and render in PS4 Pro mode." Author="gasb07" PatchVer="1.0" AppVer="01.18" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x009f9fda" Value="e921e0bb01" />
       <Line Type="bytes" Address="0x009fa288" Value="e983ddbb01" />
@@ -66,7 +66,7 @@
       <Line Type="bytes32" Address="0x02b04018" Value="0x00000870" />
     </PatchList>
   </Metadata>
-  <Metadata Title="Batman: Arkham Knight" Name="60 FPS Unlock" Note="Unlocks the 30 fps cap. Works alone or with any resolution entry. 60 FPS patch by illusion." Author="illusion" PatchVer="1.0" AppVer="01.15" AppElf="eboot.bin">
+  <Metadata Title="Batman: Arkham Knight" Name="60 FPS Unlock" Note="Unlocks the 30 fps cap. Works alone or with any resolution entry. 60 FPS patch by illusion." Author="illusion" PatchVer="1.0" AppVer="01.18" AppElf="eboot.bin">
     <PatchList>
       <Line Type="bytes" Address="0x009fa57e" Value="be00000000"/>
       <Line Type="bytes" Address="0x009fb766" Value="41bc04000000"/>
