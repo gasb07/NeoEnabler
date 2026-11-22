@@ -62,8 +62,8 @@ int main(void){
         mbd_find_layout(0x10010000)->container_ptr==0x2d55fe0&&
         mbd_find_layout(0x10010000)->backing_base==0x2d55fb8);
  assert(!mbd_find_layout(0x13500000));
- const uint32_t firmwares[]={0x12200000,0x13200000,0x13600000};
- const uint32_t extension_offsets[]={0x2e880b8,0x2ee00b8,0x2ef40b8};
+ const uint32_t firmwares[]={0x12020000,0x12200000,0x13200000,0x13600000};
+ const uint32_t extension_offsets[]={0x2e880b8,0x2e880b8,0x2ee00b8,0x2ef40b8};
  for(unsigned i=0;i<sizeof firmwares/sizeof firmwares[0];i++){
   reset(firmwares[i]);
   assert(layout->ext_global==extension_offsets[i]);
