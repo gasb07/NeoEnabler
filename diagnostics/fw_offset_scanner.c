@@ -368,6 +368,10 @@ int main(int argc,char**argv){
    begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_args\"}\n");return 1;
   }
   if(st&&!strcmp(st,"live"))return data_mode("live",write_test,0);
+  if(st&&!strcmp(st,"idle")){
+   if(write_test){begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_state\"}\n");return 1;}
+   return data_mode("idle",0,expected);
+  }
   begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_state\"}\n");return 1;
  }
  if(mode){
