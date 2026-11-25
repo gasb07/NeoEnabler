@@ -52,6 +52,7 @@
  * default branch), then the pure derivation helpers (they need mbd_layout). */
 #include "../src/neo_budget_data.h"
 #include "fw_offset_scan.h"
+#include "fw_record.h" /* candidate/snapshot JSONL emitters (host-tested) */
 #define FORMAT "neo-fwscan-v1"
 #define SCAN_FW 0x13000000u
 #define NID "HRDq-RDIGmI"
@@ -220,28 +221,6 @@ static int count_games(void){
  }
  free(b);return count;
 }
-static void print_layout(const mbd_layout*L){
- printf("{\"fw\":\"0x%08x\",\"backing_base\":\"0x%lx\",\"container_ptr\":\"0x%lx\","
-        "\"ext_global\":\"0x%lx\",\"references\":\"0x%lx\",\"profile\":\"0x%lx\","
-        "\"maximum\":\"0x%lx\"}",L->fw,(unsigned long)L->backing_base,
-        (unsigned long)L->container_ptr,(unsigned long)L->ext_global,
-        (unsigned long)L->references,(unsigned long)L->profile,
-        (unsigned long)L->maximum);
-}
-static void print_snapshot(const mbd_snapshot*s){
- printf("{\"extension\":");hexq(s->extension);
- fputs(",\"container\":",stdout);hexq(s->container);
- printf(",\"references\":\"0x%lx\",\"profile\":\"0x%lx\"",
-        (unsigned long)s->references,(unsigned long)s->profile);
- fputs(",\"maximum\":",stdout);hexq(s->maximum);
- fputs(",\"backing_base\":",stdout);hexq(s->backing_base);
- fputs(",\"available\":",stdout);hexq(s->available);
- printf(",\"field38\":");hexq(s->field38);
- fputs(",\"reserved\":",stdout);hexq(s->reserved);
- printf(",\"app_id\":\"0x%lx\",\"category\":\"0x%lx\",\"mode\":\"0x%lx\",\"flags\":\"0x%lx\"}",
-        (unsigned long)s->app_id,(unsigned long)s->category,
-        (unsigned long)s->mode,(unsigned long)s->flags);
-}
 static int data_mode(const char*state,int write_test,uint64_t expected_backing){
  int status=1;const char*reason="firmware_query_failed";
  uint32_t fw=0;size_t fw_size=4;errno=0;
@@ -293,6 +272,7 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
      mbd_snapshot s;
      errno=0;
      int read_rc=mbd_read_snapshot(&L,&s);
+     int read_errno=errno;
      int eligible=!read_rc&&mbd_eligible(&s);
      /* Idle acceptance: stock extension/maximum and the backing qword still
       * 0x100000000 at this layout (the container is 0 when idle, so the
@@ -301,14 +281,8 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
      int idle_ok=!read_rc&&!kernel_copyout((intptr_t)(data_base+L.backing_base),&backing_q,8)
                  &&!s.extension&&!s.maximum&&backing_q==0x100000000ULL;
      candidate_count++;
-     begin("candidate");printf(",\"mode\":\"data\",\"state\":");string(state);
-     printf(",\"backing_off\":\"0x%lx\",\"layout\":",(unsigned long)backing_off);
-     print_layout(&L);
-     fputs(",\"snapshot\":",stdout);
-     if(read_rc)printf("{\"read_rc\":%d,\"errno\":%d}",read_rc,errno);
-     else{fputs("{\"read_rc\":0,",stdout);print_snapshot(&s);putchar('}');}
-     printf(",\"eligible\":%s,\"idle_ok\":%s}\n",eligible?"true":"false",
-            idle_ok?"true":"false");
+     fws_print_candidate(stdout,state,backing_off,&L,read_rc,read_errno,&s,
+                         eligible,idle_ok);
      if(eligible){eligible_count++;if(!have_elig){have_elig=1;elig_layout=L;elig_snap=s;}}
      if(idle_ok)idle_count++;
      if(expected_backing&&backing_off==expected_backing)pinned_ok=idle_ok;

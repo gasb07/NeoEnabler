@@ -17,10 +17,41 @@ static int read_data(uint64_t,void*,size_t);
 #define MBD_KWRITE(p,a,n) ((void)(p),(void)(a),(void)(n),0)
 #include "../src/neo_budget_data.h"
 #include "../diagnostics/fw_offset_scan.h"
+#include "../diagnostics/fw_record.h"
 static const mbd_layout *layout;
 static mbd_snapshot live;
 static uint64_t descriptor=0xffff800000002000ULL;
 static int fail_read;
+/* Minimal JSON sanity: balanced braces, no keyless nested object (the
+ * `"snapshot":{"read_rc":0,{...}}` bug), and a "snapshot" object that is a
+ * single brace level containing key read_rc. Returns 1 when the line is a
+ * plausible candidate record. */
+static int candidate_json_ok(const char*line){
+ int depth=0,nested_after_comma=0;
+ for(const char*p=line;*p;p++){
+  if(*p=='{')depth++;
+  else if(*p=='}')depth--;
+  else if(*p=='"'){
+   p++;while(*p&&*p!='"'){if(*p=='\\')p++;if(*p)p++;}
+   if(!*p)return 0;
+  }
+  else if(*p==','&&p[1]=='{')nested_after_comma=1;
+  if(depth<0)return 0;
+ }
+ if(depth)return 0;
+ if(nested_after_comma)return 0;
+ const char*sn=strstr(line,"\"snapshot\":{");
+ if(!sn)return 0;
+ sn+=strlen("\"snapshot\":{");
+ int sdepth=1;
+ for(const char*p=sn;*p&&sdepth;p++){
+  if(*p=='{')sdepth++;
+  else if(*p=='}')sdepth--;
+  else if(*p=='"'){p++;while(*p&&*p!='"'){if(*p=='\\')p++;if(*p)p++;}if(!*p)return 0;}
+ }
+ if(sdepth)return 0;
+ return strstr(sn,"\"read_rc\"")!=NULL;
+}
 static int read_data(uint64_t a,void *p,size_t n){
  if(fail_read)return -1;
  /* Any unexpected address, including TEXT, is a test failure. */
@@ -135,5 +166,27 @@ int main(void){
  assert(!mbd_read_snapshot(&l13,&s));
  assert(!mbd_eligible(&s));
  assert(s.extension==0&&s.maximum==0&&s.references==0&&s.container==0);
+ /* candidate record shape: the emitted line must be valid single-brace JSON
+  * with a "snapshot" object carrying read_rc (regression: the record used to
+  * nest a keyless object, `"snapshot":{"read_rc":0,{...}}`, failing json.loads) */
+ {
+  FILE*tmp=tmpfile();assert(tmp);
+  mbd_layout lc=fws_layout_from_backing(0x13000000u,0x2ed9fb8u);
+  mbd_snapshot sc={0};
+  sc.container=0xffff800000001000ULL;sc.app_id=1;sc.category=0xf000;
+  sc.mode=2;sc.references=sc.profile=1;sc.backing_base=0x100000000ULL;
+  sc.available=sc.backing_base+MBD_EXPECTED_STOCK+MBD_DELTA;
+  fws_print_candidate(tmp,"live",0x2ed9fb8u,&lc,0,0,&sc,1,1);
+  fws_print_candidate(tmp,"live",0x2ed9fb8u,&lc,-1,5,NULL,0,0);
+  rewind(tmp);
+  char line[1024];
+  assert(fgets(line,sizeof line,tmp));
+  assert(candidate_json_ok(line));
+  assert(strstr(line,"\"eligible\":true"));
+  assert(fgets(line,sizeof line,tmp));
+  assert(candidate_json_ok(line)); /* failed-read record stays single-brace too */
+  assert(strstr(line,"\"read_rc\":-1"));
+  fclose(tmp);
+ }
  puts("fw offset scan: layout deltas, cave cap, bounds, candidates and DATA scoring passed");
 }
