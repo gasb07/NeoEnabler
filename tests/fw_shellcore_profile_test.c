@@ -340,7 +340,7 @@ int main(int argc,char**argv){
   }
  }
  free(mem_text);free(mem_lib);
- puts("shellcore profile: bm_valid twin (13.20/13.60), fail naming and record emitter passed");
+ puts("shellcore profile: bm_valid twin (13.00/13.20/13.60), fail naming and record emitter passed");
 }
 /* Mock DATA read: the profile checks never touch DATA; any hit is a bug. */
 static int read_data(uint64_t a,void*p,size_t n){(void)a;(void)p;(void)n;assert(!"unexpected DATA read");return -1;}

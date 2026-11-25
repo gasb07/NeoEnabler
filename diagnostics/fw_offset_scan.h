@@ -17,6 +17,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h> /* memcpy/memcmp in fws_bm_valid_dry_run + the prologue scanners */
 
 /* Spec delta table (docs/superpowers/specs/2026-11-24-fw1300-8gb-scanner-design.md):
  * firmware-invariant offsets from backing_base, verified on all six stored

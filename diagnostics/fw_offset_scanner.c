@@ -623,10 +623,9 @@ static int sc_derive_padding(int pid,uint64_t base,uint64_t mapsize,
     int f2=kernel_get_vmem_protection(pid,(intptr_t)(base+off+(uint64_t)sub*0x1000),0x1000);
     if(f2>=0){any=1;exec=exec||((f2&4)!=0);}
    }
-   *first_nonexec_off=off;*first_nonexec_flags=flags;
    *retry_flags=kernel_get_vmem_protection(pid,(intptr_t)(base+off),0x1000);
-   if(!any)break;              /* every granularity errored: stop here */
-   if(!exec)break;             /* mapped, not executable: text ended */
+   if(!any){*first_nonexec_off=off;*first_nonexec_flags=flags;break;}
+   if(!exec){*first_nonexec_off=off;*first_nonexec_flags=flags;break;}
   }else if(!(flags&4)){*first_nonexec_off=off;*first_nonexec_flags=flags;break;}
   rx_end=off+0x4000;
  }
@@ -926,6 +925,12 @@ static int shellcore_mode(void){
   reason=strategy?"padding_derivation_failed":"nid_and_stub_resolution_failed";
   status=1;
  }
+ /* Every failure reason must exit nonzero (header: 1 on any other failure).
+  * The early-failure paths (shellcore_unresolved, libkernel_sys_unresolved,
+  * main/lib_map_read_failed, call_not_found, function_prologue_not_found)
+  * set reason while status is still 0; ambiguity reasons already set
+  * status=3 and wrong_firmware status=2 - the guard leaves those alone. */
+ if(reason&&status==0)status=1;
  /* session record: resolution, raw dynlib fields, NID lookups, strategy and
   * any ambiguity sites (offsets only - never raw bytes). */
  begin("session");printf(",\"mode\":\"shellcore\",\"firmware_raw\":");
@@ -1008,6 +1013,10 @@ static int shellcore_mode(void){
  if(rx_printed&&first_nonexec_off)printf("\"0x%lx\",\"first_nonexec_flags\":%d",
    (unsigned long)first_nonexec_off,first_nonexec_flags);
  else fputs("null",stdout);
+ /* evidence for the 16 KiB protection-query quirk (mapped pages returning
+  * -1 at that length on 13.00): the same failing page queried at 4 KiB */
+ printf(",\"retry_flags\":");
+ if(rx_printed&&first_nonexec_off)printf("%d",retry_flags);else fputs("null",stdout);
  fputs(",\"sites\":[",stdout);
  for(unsigned i=0;i<site_count;i++)printf("%s\"0x%lx\"",i?",":"",(unsigned long)sites[i]);
  printf("],\"sites_truncated\":%s,\"reason\":",site_trunc?"true":"false");
