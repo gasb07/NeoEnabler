@@ -97,9 +97,14 @@ int main(void){
  assert(fws_reserve_bounds_ok(0x19626fc, 0x1963000, 0x1964000)); /* 13.60 */
  assert(fws_reserve_bounds_ok(0x17db60c, 0x17db800, 0x17dc000)); /* 10.01 */
  assert(!fws_reserve_bounds_ok(0x19619ec, 0x1961c00, 0x1964000)); /* the near-miss */
- /* candidate selection: dedup + cap */
+ /* candidate selection: every 0x100000000 hit is reported (spec: each hit
+  * must be validated — a later same-value hit is a real candidate too);
+  * cap bounds the output and truncation is signaled, never silent */
  uint32_t out[4]; uint64_t hits[] = {0x100000000, 0x100000000, 0x200000000};
- assert(fws_backing_candidates(hits, 3, out, 4) == 1 && out[0] == 0);
+ assert(fws_backing_candidates(hits, 3, out, 4) == 2 && out[0] == 0 && out[1] == 1);
+ assert(fws_backing_candidates(hits, 3, out, 1) == -1);  /* cap=1, 2 matches: truncated */
+ uint64_t none[] = {1, 2, 0x100000001};
+ assert(fws_backing_candidates(none, 3, out, 4) == 0);   /* no matches */
  /* --data scoring: the 13.00 layout is not in mbd_layouts[], it is derived
   * from the backing hit alone through the same chain the payload uses:
   * chunk hits -> candidate index -> DATA offset (chunk base + index*8) ->

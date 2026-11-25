@@ -264,13 +264,16 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
  printf(",\"game_count\":");
  if(games>=0)printf("%d",games);else fputs("null",stdout);
  fputs("}\n",stdout);
- unsigned candidate_count=0,eligible_count=0,idle_count=0;int scan_complete=0,pinned_ok=0;
+ unsigned candidate_count=0,eligible_count=0,idle_count=0;
+ int scan_complete=0,pinned_ok=0,scan_truncated=0;
  uint64_t scan_end=0;unsigned long long qwords=0;
  mbd_layout elig_layout;mbd_snapshot elig_snap;int have_elig=0;int write_ran=0;
  if(!status){
   unsigned char*raw=malloc(CHUNK_BYTES);
   uint64_t*hits=malloc(CHUNK_BYTES);
-  scan_complete=raw&&hits;
+  /* Worst case for one chunk: every qword matches, one index each. */
+  uint32_t*idx=malloc(CHUNK_BYTES/8*sizeof *idx);
+  scan_complete=raw&&hits&&idx;
   if(scan_complete){
    scan_end=SCAN_BYTES;
    for(uint64_t off=0;off<SCAN_BYTES;off+=CHUNK_BYTES){
@@ -278,10 +281,12 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
      scan_complete=0;scan_end=off;break;
     }
     memcpy(hits,raw,CHUNK_BYTES);
-    uint32_t idx[8];
-    /* Dedup means at most one candidate per chunk (first 0x100000000 only). */
-    int n=fws_backing_candidates(hits,CHUNK_BYTES/8,idx,8);
+    /* fws_backing_candidates reports EVERY 0x100000000 hit in the chunk;
+     * a negative return means the idx buffer truncated (unreachable at this
+     * size, kept as a guard) and fails the scan instead of a clean verdict. */
+    int n=fws_backing_candidates(hits,CHUNK_BYTES/8,idx,CHUNK_BYTES/8);
     qwords+=CHUNK_BYTES/8;
+    if(n<0){scan_complete=0;scan_truncated=1;scan_end=off;break;}
     for(int i=0;i<n;i++){
      uint32_t backing_off=(uint32_t)(off+(uint64_t)idx[i]*8);
      mbd_layout L=fws_layout_from_backing(SCAN_FW,backing_off);
@@ -310,7 +315,7 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
     }
    }
   }
-  free(raw);free(hits);
+  free(raw);free(hits);free(idx);
   /* Live verdict: exactly one eligible candidate. Idle verdict: exactly one
    * candidate at the pinned layout passing the idle criteria (or, unpinned,
    * exactly one idle_ok candidate). */
@@ -320,6 +325,7 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
   const char*verdict=NULL;
   if(!surviving)verdict=scan_complete?"none":"scan_incomplete";
   else if(surviving>1)verdict="ambiguous";
+  if(scan_truncated)verdict="scan_truncated"; /* a truncated scan is never clean */
   if(verdict){reason=verdict;status=3;}
   /* Write-test: DEFAULT OFF; only after a clean live run, one apply/restore
    * byte cycle through the production transaction code (MBD_KWRITE). */

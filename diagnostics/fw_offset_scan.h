@@ -67,17 +67,19 @@ static inline int fws_reserve_bounds_ok(uint32_t padding, uint32_t cave, uint32_
 /* Index-vs-offset contract: out[] receives indices into hits[], never DATA
  * offsets. The caller translates index -> DATA offset as scan base + index*8,
  * where the scan base is the DATA offset of hits[0]. Only the value
- * 0x100000000 (the backing base mbd_eligible() requires) is collected, each
- * value once (dedup: a repeat of an earlier hit is skipped), at most cap
- * entries. Returns the number of candidates copied. */
+ * 0x100000000 (the backing base mbd_eligible() requires) is collected, and
+ * EVERY occurrence is reported: a later same-value hit is a real candidate
+ * too and must be validated, not deduped away. Returns the number of
+ * candidates copied (0..cap); when more than cap matches exist, out[] holds
+ * the first cap indices and the return value is -cap (truncation signal;
+ * cap>=1 so it cannot be confused with "0 matches"). Callers must treat a
+ * negative return as a failed scan, never a clean verdict. */
 static inline int fws_backing_candidates(const uint64_t *hits, size_t n, uint32_t *out, size_t cap){
  size_t copied=0;
- if(!hits||!out)return 0;
- for(size_t i=0;i<n&&copied<cap;i++){
+ if(!hits||!out||!cap)return 0;
+ for(size_t i=0;i<n;i++){
   if(hits[i]!=0x100000000ULL)continue;
-  size_t j=0;
-  while(j<i&&hits[j]!=0x100000000ULL)j++;
-  if(j<i)continue; /* dedup: first occurrence of the value only */
+  if(copied==cap)return -(int)cap; /* out full, more matches exist: truncated */
   out[copied++]=(uint32_t)i;
  }
  return (int)copied;
