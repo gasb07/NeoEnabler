@@ -68,6 +68,11 @@ int main(void){
   {0xe8,0x6a,0xe9,0x27,0x01},{0xff,0x25,0x62,0x96,0x70,0},0x18e8,0x198};
  const bm_profile *p1300=bm_find(0x13000000);
  assert(p1300&&!memcmp(p1300,&expect1300,sizeof expect1300));
+ const bm_profile *fw1202=bm_find(0x12020000);
+ assert(fw1202&&fw1202->function==0x690600&&fw1202->call==0x691451);
+ assert(fw1202->import_==0x18801d0&&fw1202->got==0x1f4b650&&fw1202->wrapper==0x42450);
+ assert(fw1202->padding==0x188635c&&fw1202->cave==0x1886800&&fw1202->end==0x1888000);
+ assert(fw1202->function_stack==0x18e8&&fw1202->wrapper_stack==0x198);
  for(unsigned i=0;i<sizeof bm_profiles/sizeof bm_profiles[0];i++){
   uint32_t fw=bm_profiles[i].fw;const bm_profile*p=&bm_profiles[i];
   reset(fw);assert(!bm_install(fw,123456));assert(bm.attached&&!bm.fatal&&state==2&&stop_count==1&&continue_count==1);assert(!memcmp(at(call_address,5),bm.redirect,5));

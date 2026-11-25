@@ -15,6 +15,7 @@ when one of its enabled patches needs it; every other game starts as usual.
 
 8 GiB memory budget without an HV unlock works on firmware 13.20 and 13.60 with other firmwares being **experimental**.
 See [validation and limitations](docs/8GB-NO-HV-1360.md):
+On 12.02, one PS5 Pro test with Red Dead Redemption 2 (CUSA08519) confirmed 8448 MiB DMEM, constructor field38=0x24c000000, restoration of the stock DATA extension after closing the game, and removal of the launch hook on Quit. The test used the global Pro mode and 8 GiB overrides; automatic per-game patch selection was not tested.
 On 12.20, one console test of Bloodborne (CUSA00900) confirmed 8 GiB on launch and restoration of the stock DATA extension after closing the game.
 10.01 and 12.70 each have one community report of Bloodborne running with 8 GiB enabled.
 If you are on an experimental firmware, please report whether it works with the
@@ -22,7 +23,7 @@ If you are on an experimental firmware, please report whether it works with the
 
 PS4 Pro Mode + High Resolution + 120 HZ + CPU/GPU Clock Boost = FW 4.00 to 13.60
 
-8 GiB Memory Support = FW 9.00, 10.01, 12.20, 12.70, 13.00 (experimental), 13.20, 13.60
+8 GiB Memory Support = FW 9.00, 10.01, 12.02 (experimental), 12.20, 12.70, 13.00 (experimental), 13.20, 13.60
 
 Most patches do not require 8 GiB
 
