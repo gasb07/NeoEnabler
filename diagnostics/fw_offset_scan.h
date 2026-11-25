@@ -143,6 +143,85 @@ static inline int fws_site_real_prologue(const unsigned char*buf,size_t size,
  }
  return 0;
 }
+
+/* Ruling 3: among the surviving call sites of the blessed import_, the gap
+ * invariant selects the call - the site whose enclosing-function gap (call
+ * minus function entry) equals FWS_SIG_FUNCTION_GAP (0xe51, the exact
+ * distance of the hardware-validated 12.20/13.20/13.60 profiles; site2 on
+ * 13.00 is a presumed-real second caller, classified without disasm by the
+ * exact-rel32 math, and NOT hooked - the bm single-call design question is a
+ * maintainer decision out of this PR's scope). Returns 0 (no match:
+ * gap_unmatched), 1 (unique, *out_index = winner) or 2 (two or more:
+ * gap_ambiguous). */
+static inline int fws_gap_select(const uint32_t*gaps,size_t n,size_t*out_index){
+ size_t matches=0;
+ for(size_t i=0;i<n;i++){
+  if(gaps[i]!=FWS_SIG_FUNCTION_GAP)continue;
+  if(!matches)*out_index=i;
+  matches++;
+ }
+ return !matches?0:matches==1?1:2;
+}
+
+/* Padding-candidate validation, shared by every derivation path: the
+ * candidate must reproduce a workable bm_reserve shape, not just arithmetic.
+ *   - padding > call_off (the reservation tail lies past the patched call),
+ *   - end > import_off (the exec region must contain the PLT stub we call
+ *     through - kills a truncated protection walk: run-7 garbage had
+ *     end=0x75c000 with the PLT at 0x1951d30),
+ *   - end <= got_off (the reservation sits below the GOT),
+ *   - end-cave >= 1024 (bm_reserve needs at least one slot; a vacuous
+ *     empty reservation passes nothing),
+ *   - fws_reserve_bounds_ok (the bm_reserve entry checks),
+ *   - [cave,end) all zero in the map buffer (a reservation over data can
+ *     never pass bm_reserve). */
+static inline int fws_padding_valid(uint32_t padding,uint32_t cave,uint32_t end,
+                                    uint64_t call_off,uint64_t import_off,
+                                    uint64_t got_off,const unsigned char*buf,
+                                    size_t size){
+ if(padding<=(uint32_t)call_off)return 0;
+ if(end<=(uint32_t)import_off)return 0;
+ if(end>(uint32_t)got_off)return 0;
+ if(end-cave<1024)return 0;
+ if(!fws_reserve_bounds_ok(padding,cave,end))return 0;
+ if(end>size)return 0;
+ for(uint64_t j=cave;j<end;j++)if(buf[j])return 0;
+ return 1;
+}
+
+/* Text-end derivation from a map snapshot (no protection queries needed):
+ * scan forward from the discovered call for the first all-zero 4 KiB page;
+ * the text tail is zero padding to the segment end, so padding = the last
+ * non-zero byte of the 4 KiB page before it + 1 (byte-exact: reproduces the
+ * 13.20 row 0x19619ec and the 13.60 row 0x19626fc from shaped mock maps;
+ * 13.60's derived cave 0x1962800 differs from its hand-measured 0x1963000 -
+ * both pass the bounds). Every candidate is validated hard (see
+ * fws_padding_valid) before acceptance; a failing candidate is skipped and
+ * the scan continues; a zero page whose predecessor is also zero belongs to
+ * an already-tried run. Returns 0 and fills padding/cave/end for the first
+ * passing candidate, -1 when none passes (never invents a padding). */
+static inline int fws_zero_run_padding(const unsigned char*buf,size_t size,
+                                       uint64_t call_off,uint64_t import_off,
+                                       uint64_t got_off,
+                                       uint32_t*padding,uint32_t*cave_out,
+                                       uint32_t*end_out){
+ uint64_t start=(call_off+0xfffULL)&~0xfffULL;
+ for(uint64_t off=start;off+0x1000<=size;off+=0x1000){
+  int zero=1;
+  for(uint64_t j=0;j<0x1000;j++)if(buf[off+j]){zero=0;break;}
+  if(!zero)continue;
+  if(off<0x1000)break;
+  uint64_t last=0;int nz=0;
+  for(int64_t j=0xfff;j>=0;j--)if(buf[off-0x1000+j]){last=(uint64_t)j;nz=1;break;}
+  if(!nz)continue; /* predecessor zero: this run was already tried */
+  uint32_t p=(uint32_t)(off-0x1000+last+1);
+  uint32_t e=fws_end(p),c=fws_cave(p,e);
+  if(!fws_padding_valid(p,c,e,call_off,import_off,got_off,buf,size))continue;
+  *padding=p;*cave_out=c;*end_out=e;
+  return 0;
+ }
+ return -1;
+}
 static inline int fws_bm_valid_dry_run(uint64_t base,uint64_t lib,const fws_profile*p,
                                        fws_read_mem read_mem,void*ctx,
                                        const char**failing_check){

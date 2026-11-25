@@ -130,6 +130,64 @@ int main(int argc,char**argv){
  assert(fws_bm_valid_dry_run(MOCK_BASE,MOCK_LIB,&p1320,mock_read,NULL,&fail)==0);
  assert(fail&&!strcmp(fail,"got_unreadable"));
  fail_addr_set=0;
+ /* Ruling 3: among the surviving sites, the gap invariant (0xe51, the exact
+  * call-function distance of the hardware-validated 12.20/13.20/13.60
+  * profiles) selects the call. No match -> gap_unmatched; two matches ->
+  * gap_ambiguous; the loser's evidence stays recorded. */
+ {
+  uint32_t g1[]={0xe51,0x8dc};size_t sel=0;
+  assert(fws_gap_select(g1,2,&sel)==1&&sel==0);      /* first site wins */
+  uint32_t g2[]={0x8dc,0xe51};sel=0;
+  assert(fws_gap_select(g2,2,&sel)==1&&sel==1);      /* second site wins */
+  uint32_t g0[]={0x8dc,0x123};sel=0;
+  assert(fws_gap_select(g0,2,&sel)==0);              /* none: gap_unmatched */
+  uint32_t gA[]={0xe51,0x8dc,0xe51};sel=0;
+  assert(fws_gap_select(gA,3,&sel)==2);              /* two: gap_ambiguous */
+ }
+ /* Text-end derivation from a map snapshot must reproduce the exact stored
+  * 13.20 and 13.60 tuples from shaped mock maps (code, tail zero padding to
+  * the text segment end, then rodata, GOT far above), must reject an
+  * interior zero hole in the code (below the PLT the end>import_ check
+  * refuses it), and fws_padding_valid must reject the run-7 garbage shape
+  * (truncated protection walk: empty reservation at 0x75c000). */
+ {
+  static unsigned char t[0x2080000];
+  uint32_t pad,cav,end;
+  #define SHAPE(pad_end,gotv,callv,impv) do{ \
+   memset(t,0,sizeof t); \
+   memset(t,0xcc,pad_end); \
+   memset(t+0x1964000,0xaa,0x4000); \
+   uint64_t g=0x100000000000ULL+gotv; memcpy(t+gotv,&g,8); \
+   assert(fws_zero_run_padding(t,sizeof t,callv,impv,gotv,&pad,&cav,&end)==0); \
+  }while(0)
+  SHAPE(0x19619ec,0x2067458,0x6d7c11,0x195b690); /* 13.20 shape */
+  assert(pad==0x19619ec&&cav==0x1962000&&end==0x1964000);
+  SHAPE(0x19626fc,0x2067460,0x6d8941,0x195c3b0); /* 13.60 shape */
+  assert(pad==0x19626fc&&cav==0x1962800&&end==0x1964000); /* stored 13.60 cave 0x1963000 is hand-measured; both pass bounds */
+  #undef SHAPE
+  /* interior 2-page zero hole inside the code: end=0x100000 sits below the
+   * PLT import_ -> refused; the scan continues to the true tail */
+  memset(t,0,sizeof t);memset(t,0xcc,0x19619ec);
+  memset(t+0x100000,0,0x8000);
+  memset(t+0x1964000,0xaa,0x4000);
+  {uint64_t g=0x100000000000ULL+0x2067458;memcpy(t+0x2067458,&g,8);}
+  assert(fws_zero_run_padding(t,sizeof t,0x6d7c11,0x195b690,0x2067458,&pad,&cav,&end)==0);
+  assert(pad==0x19619ec&&cav==0x1962000&&end==0x1964000);
+  /* no tail shape at all: derivation must fail, never invent */
+  memset(t,0,sizeof t);memset(t,0xcc,0x4000); /* everything code then zeros forever */
+  assert(fws_zero_run_padding(t,sizeof t,0x1000,0x195b690,0x2067458,&pad,&cav,&end)==-1);
+  /* run-7 regression: a truncated protection walk produced padding=cave=end
+   * 0x75c000 with the PLT at 0x1951d30 - empty reservation below the import:
+   * every structural check must refuse it */
+  memset(t,0,sizeof t);memset(t,0xcc,0x75b000);
+  assert(!fws_padding_valid(0x75c000,0x75c000,0x75c000,0x6d33c1,0x1951d30,
+                            0x205b398,t,sizeof t));
+  /* the same offsets with a real tail shape pass */
+  memset(t,0,sizeof t);memset(t,0xcc,0x19619ec);
+  {uint64_t g=0x100000000000ULL+0x2067458;memcpy(t+0x2067458,&g,8);}
+  assert(fws_padding_valid(0x19619ec,0x1962000,0x1964000,0x6d7c11,0x195b690,
+                           0x2067458,t,sizeof t));
+ }
  /* restored bytes pass again (no state leaked between runs) */
  build_mock(&p1320);
  assert(fws_bm_valid_dry_run(MOCK_BASE,MOCK_LIB,&p1320,mock_read,NULL,&fail)==1&&!fail);

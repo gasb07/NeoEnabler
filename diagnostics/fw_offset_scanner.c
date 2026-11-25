@@ -582,64 +582,79 @@ typedef struct {
  int survives;
 } sc_siteev;
 #define SC_MAX_SITES 64
-/* padding derivation (Task-3 adjusted), in priority order:
- *  - "textsize": only when main.textsize reads plausible (< mapsize,
- *    > 0x10000). On 13.00 it reads kernel-ptr-like garbage, so this is the
- *    exception path, never the plan.
- *  - "rx_tail_scan": walk the executable mapping (16 KiB pages, exec bit, the
- *    bm_permissions granularity) up to rx_end, then scan the map buffer back
- *    page-by-page from rx_end for the last non-zero 4 KiB page and, inside
- *    it, the last non-zero byte; padding = that byte + 1. Text is followed by
- *    zero padding to the segment page end, so [padding,rx_end) is zero by
- *    construction.
- *  - "zero_run_scan": coarse fallback - the first 4 KiB page after 0x10000
- *    that is all zero with its successor also zero; padding = page start
- *    (may overstate the text end by up to one page; bounds stay valid).
- * Every result must lie past the discovered call, inside the map, and pass
- * fws_reserve_bounds_ok() before it may reach the profile. */
-static int sc_derive_padding(int pid,uint64_t base,uint64_t mapsize,uint64_t textsize,
-                             const unsigned char*mb,uint64_t call_off,
+/* padding derivation (Ruling 3: NEVER textsize - ledger: kernel-ptr-like
+ * garbage that differs between boots while map offsets are identical), in
+ * priority order:
+ *  - "rx_tail_scan": walk the executable mapping (16 KiB pages, exec bit,
+ *    the bm_permissions granularity) up to rx_end, then scan the map buffer
+ *    back page-by-page from rx_end for the last non-zero 4 KiB page and,
+ *    inside it, the last non-zero byte; padding = that byte + 1. The 16 KiB
+ *    query returned -1 on MAPPED pages on 13.00 with the first failure point
+ *    varying per boot (0x19c000, 0x75c000), so a failing page is retried at
+ *    4 KiB granularity before being treated as non-exec.
+ *  - "zero_run_scan": buffer-only fallback (fws_zero_run_padding): first
+ *    all-zero 4 KiB page after the discovered call, padding = last non-zero
+ *    byte of the page before it + 1.
+ * BOTH paths validate the candidate identically before it may reach the
+ * profile: end == the 13.20/13.60 shared text-end page (cross-firmware
+ * validation), end <= got (the reservation sits below the GOT),
+ * fws_reserve_bounds_ok, and [cave,end) all zero in the map buffer (the
+ * bm_reserve precondition - a reservation over code can never pass). */
+static int sc_derive_padding(int pid,uint64_t base,uint64_t mapsize,
+                             const unsigned char*mb,uint64_t call_off,uint64_t import_off,
+                             uint64_t got_off,
                              uint32_t*padding,const char**source,
-                             uint64_t*rx_end_out,int*rx_walked){
- *rx_walked=0;*rx_end_out=0;
- uint32_t cand=0;const char*src=NULL;
- if(textsize>0x10000&&textsize<mapsize){cand=(uint32_t)textsize;src="textsize";}
- if(!src){
-  uint64_t rx_end=0;
-  for(uint64_t off=0;off+0x4000<=mapsize;off+=0x4000){
-   int flags=kernel_get_vmem_protection(pid,(intptr_t)(base+off),0x4000);
-   if(flags<0||!(flags&4))break;
-   rx_end=off+0x4000;
-  }
-  *rx_end_out=rx_end;*rx_walked=1;
-  if(rx_end>=0x10000&&rx_end<=mapsize){
-   uint64_t off=rx_end-0x4000;
-   for(;;){
-    const unsigned char*page=mb+off;
-    int nz=0;
-    for(uint64_t j=0;j<0x4000;j++)if(page[j]){nz=1;break;}
-    if(nz){
-     uint64_t last=0;
-     for(int64_t j=0x3fff;j>=0;j--)if(page[j]){last=(uint64_t)j;break;}
-     cand=(uint32_t)(off+last+1);src="rx_tail_scan";
-     break;
-    }
-    if(!off)break;
-    off-=0x4000;
+                             uint64_t*rx_end_out,int*rx_walked,
+                             uint64_t*first_nonexec_off,int*first_nonexec_flags,
+                             int*retry_flags){
+ *rx_walked=0;*rx_end_out=0;*first_nonexec_off=0;*first_nonexec_flags=-1;*retry_flags=-1;
+ uint32_t cand=0,pcave_tmp=0,pend_tmp=0;const char*src=NULL;
+ uint64_t rx_end=0;
+ for(uint64_t off=0;off+0x4000<=mapsize;off+=0x4000){
+  int flags=kernel_get_vmem_protection(pid,(intptr_t)(base+off),0x4000);
+  if(flags<0){
+   /* mapped pages returned -1 at 16 KiB on 13.00: retry at 4 KiB before
+    * treating the page as non-exec */
+   int any=0,exec=0;
+   for(unsigned sub=0;sub<4;sub++){
+    int f2=kernel_get_vmem_protection(pid,(intptr_t)(base+off+(uint64_t)sub*0x1000),0x1000);
+    if(f2>=0){any=1;exec=exec||((f2&4)!=0);}
    }
+   *first_nonexec_off=off;*first_nonexec_flags=flags;
+   *retry_flags=kernel_get_vmem_protection(pid,(intptr_t)(base+off),0x1000);
+   if(!any)break;              /* every granularity errored: stop here */
+   if(!exec)break;             /* mapped, not executable: text ended */
+  }else if(!(flags&4)){*first_nonexec_off=off;*first_nonexec_flags=flags;break;}
+  rx_end=off+0x4000;
+ }
+ *rx_end_out=rx_end;*rx_walked=1;
+ if(rx_end>=0x10000&&rx_end<=mapsize){
+  uint64_t off=rx_end-0x1000;
+  for(;;){
+   int nz=0;
+   for(uint64_t j=0;j<0x1000;j++)if(mb[off+j]){nz=1;break;}
+   if(nz){
+    uint64_t last=0;
+    for(int64_t j=0xfff;j>=0;j--)if(mb[off+j]){last=(uint64_t)j;break;}
+    cand=(uint32_t)(off+last+1);src="rx_tail_scan";
+    break;
+   }
+   if(!off)break;
+   off-=0x1000;
   }
  }
- if(!src){
-  for(uint64_t off=0x10000;off+0x8000<=mapsize;off+=0x4000){
-   int zero=1;
-   for(uint64_t j=0;j<0x8000&&zero;j++)if(mb[off+j])zero=0;
-   if(zero){cand=(uint32_t)off;src="zero_run_scan";break;}
-  }
+ if(src){
+  uint32_t e=fws_end(cand),c=fws_cave(cand,e);
+  if(!fws_padding_valid(cand,c,e,call_off,import_off,got_off,mb,(size_t)mapsize))
+   src=NULL; /* validation failed: fall through to the buffer-only method */
+  if(!src)cand=0;
+ }
+ if(!src&&mb&&fws_zero_run_padding(mb,(size_t)mapsize,call_off,import_off,got_off,
+                                   &cand,&pcave_tmp,&pend_tmp)==0){
+  src="zero_run_scan";
  }
  if(!src)return -1;
  if(cand<=call_off||cand>=mapsize)return -1;
- uint32_t e=fws_end(cand),c=fws_cave(cand,e);
- if(e>mapsize||!fws_reserve_bounds_ok(cand,c,e))return -1;
  *padding=cand;*source=src;
  return 0;
 }
@@ -683,11 +698,13 @@ static int shellcore_mode(void){
  int padding_ok=0,reserve_ok=0,dryrun_pass=0;
  const char*failing_check=NULL;
  uint64_t rx_end=0;int rx_walked=0,rx_printed=0;
+ uint64_t first_nonexec_off=0;int first_nonexec_flags=-1,retry_flags=-1;
  uint64_t prologue_total=0;
  int have_profile=0;
  uint64_t sites[16];unsigned site_count=0,site_trunc=0;
  sc_siteev b_ev[SC_MAX_SITES];uint32_t b_sites[SC_MAX_SITES];
  unsigned b_count=0,b_surviving=0;int b_trunc=0;uint64_t b_call=0;
+ uint64_t selected_site=0;const char*selected_by=NULL;
  fws_profile P;memset(&P,0,sizeof P);
  if(!reason){
   pid=find_proc("SceShellCore");
@@ -841,14 +858,28 @@ static int shellcore_mode(void){
        b_count++;
       }else{b_trunc=1;break;}
      }
-     if(b_trunc||b_surviving>1){
-      reason="site_ambiguous";status=3;
-      for(unsigned k=0;k<b_count&&site_count<16;k++)
-       if(b_ev[k].survives)sites[site_count++]=b_ev[k].site;
-      if(b_surviving>16)site_trunc=1;
-     }
+     if(b_trunc){reason="site_ambiguous";status=3;}
      else if(!b_surviving){reason="no_surviving_site";status=1;}
-     else call_off=b_call;
+     else if(b_surviving>1){
+      /* Ruling 3: site2 was classified REAL (exact-rel32 math, P≈1e-5 for an
+       * embedded false positive), so multiple survivors are expected; the
+       * gap invariant (the exact path the hardware-validated 12.20/13.20/
+       * 13.60 profiles intercept) selects the call. Site2 is a presumed-real
+       * second caller, NOT hooked (bm single-call->dual-call is a maintainer
+       * decision, out of this PR's scope). */
+      uint32_t gaps[SC_MAX_SITES];size_t sel=0;
+      for(unsigned k=0;k<b_count;k++)gaps[k]=b_ev[k].gap;
+      int g=fws_gap_select(gaps,b_count,&sel);
+      if(!g){reason="gap_unmatched";status=1;}
+      else if(g>1){
+       reason="gap_ambiguous";status=3;
+       for(unsigned k=0;k<b_count&&site_count<16;k++)
+        if(b_ev[k].survives&&b_ev[k].gap==FWS_SIG_FUNCTION_GAP)
+         sites[site_count++]=b_ev[k].site;
+      }
+      else{selected_site=b_ev[sel].site;selected_by="gap_invariant";call_off=b_call=b_ev[sel].site;}
+     }
+     else{selected_site=b_ev[0].site;selected_by="prologue_filter";call_off=b_call=b_ev[0].site;}
     }
    }
   }
@@ -868,10 +899,11 @@ static int shellcore_mode(void){
   else memcpy(&function_stack,mb+function_off+16,4);
  }
  if(!reason&&strategy){
-  padding_ok=!sc_derive_padding(pid,main_obj.mapbase,main_obj.mapsize,main_obj.textsize,
-                                mb,call_off,&padding,&padding_source,&rx_end,&rx_walked);
+  padding_ok=!sc_derive_padding(pid,main_obj.mapbase,main_obj.mapsize,
+                                mb,call_off,import_off,got_off,&padding,&padding_source,&rx_end,&rx_walked,
+                                &first_nonexec_off,&first_nonexec_flags,&retry_flags);
   rx_printed=rx_walked;
-  if(!padding_ok)reason="padding_derivation_failed";
+  if(!padding_ok){reason="padding_derivation_failed";status=1;}
  }
  if(!reason&&strategy&&padding_ok){
   pend=fws_end(padding);pcave=fws_cave(padding,pend);
@@ -953,7 +985,11 @@ static int shellcore_mode(void){
   * not just the winner: this is the bm single-call design evidence). */
  if(b_count){
   printf(",\"site_selection\":{\"stub\":\"0x%lx\",\"surviving\":%u,\"sites_truncated\":%s,"
-         "\"sites\":[",(unsigned long)import_off,b_surviving,b_trunc?"true":"false");
+         "\"selected_site\":",(unsigned long)import_off,b_surviving,b_trunc?"true":"false");
+  if(selected_site)printf("\"0x%lx\"",selected_site);else fputs("null",stdout);
+  printf(",\"selected_by\":");
+  if(selected_by)string(selected_by);else fputs("null",stdout);
+  printf(",\"sites\":[");
   for(unsigned k=0;k<b_count;k++){
    printf("%s",k?",":"");
    fws_print_site(stdout,b_ev[k].site,b_ev[k].function,b_ev[k].function_stack,
@@ -965,6 +1001,10 @@ static int shellcore_mode(void){
  if(padding_source)string(padding_source);else fputs("null",stdout);
  printf(",\"rx_end\":");
  if(rx_printed)printf("\"0x%lx\"",(unsigned long)rx_end);else fputs("null",stdout);
+ printf(",\"first_nonexec_page\":");
+ if(rx_printed&&first_nonexec_off)printf("\"0x%lx\",\"first_nonexec_flags\":%d",
+   (unsigned long)first_nonexec_off,first_nonexec_flags);
+ else fputs("null",stdout);
  fputs(",\"sites\":[",stdout);
  for(unsigned i=0;i<site_count;i++)printf("%s\"0x%lx\"",i?",":"",(unsigned long)sites[i]);
  printf("],\"sites_truncated\":%s,\"reason\":",site_trunc?"true":"false");
