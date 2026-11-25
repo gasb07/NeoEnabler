@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1-experimental
+
+- Experimental 8GB Mode on firmware 13.00 (arthurprogramming tested it with Red Dead Redemption 2 and Bloodborne).
+  (Contributed by arthurprogramming.)
+- Experimental 8GB Mode on firmware 12.02 (boykopovar tested it on a PS5 Pro with Red Dead Redemption 2).
+  (Contributed by boykopovar.)
+
 ## 0.7.0
 
 - Experimental 8 GB support for 12.20 contributed by [Serotoniner](https://github.com/Serotoniner)
