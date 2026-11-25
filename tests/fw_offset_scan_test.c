@@ -1,17 +1,49 @@
-/* GPL-3.0-only. Host test of the scanner derivation helpers.
- * neo_budget_data.h is pulled in under test defines with MBD_KREAD mocked
- * (budget_data_test.c pattern); the mock stays macro-only here because the
- * snapshot reads are exercised by the scoring test added with the --data mode.
+/* GPL-3.0-only. Host test of the scanner derivation helpers and the --data
+ * scoring path. neo_budget_data.h is pulled in under test defines with
+ * MBD_KREAD mocked as fake DATA memory (budget_data_test.c read_data FIELD
+ * pattern); MBD_KWRITE stays macro-only because the scoring test is read-only
+ * (the write path is exercised by budget_data_test.c). The scoring test feeds
+ * a layout reconstructed by fws_layout_from_backing() into the production
+ * mbd_read_snapshot()/mbd_eligible() and checks the live and idle signatures.
  */
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #define NEO_DATA_BUDGET_TEST
 #define MBD_DATA() 0xffffffffa0000000ULL
-#define MBD_KREAD(a,p,n)  ((void)(a),(void)(p),(void)(n),0)
+static int read_data(uint64_t,void*,size_t);
+#define MBD_KREAD(a,p,n) read_data(a,p,n)
 #define MBD_KWRITE(p,a,n) ((void)(p),(void)(a),(void)(n),0)
 #include "../src/neo_budget_data.h"
 #include "../diagnostics/fw_offset_scan.h"
+static const mbd_layout *layout;
+static mbd_snapshot live;
+static uint64_t descriptor=0xffff800000002000ULL;
+static int fail_read;
+static int read_data(uint64_t a,void *p,size_t n){
+ if(fail_read)return -1;
+ /* Any unexpected address, including TEXT, is a test failure. */
+ #define FIELD(off,field) if(a==MBD_DATA()+layout->off){assert(n==sizeof live.field);memcpy(p,&live.field,n);return 0;}
+ FIELD(ext_global,extension)
+ FIELD(maximum,maximum)
+ FIELD(container_ptr,container)
+ FIELD(backing_base,backing_base)
+ FIELD(references,references)
+ FIELD(profile,profile)
+ #undef FIELD
+ if(a==live.container){
+  assert(n==0x148);memset(p,0,n);
+  #define PUT(off,field) memcpy((char*)p+off,&live.field,sizeof live.field)
+  memcpy((char*)p+8,&descriptor,8);
+  PUT(0x38,field38);PUT(0x40,reserved);PUT(0x80,available);
+  PUT(0x118,category);PUT(0x11c,app_id);PUT(0x140,flags);
+  #undef PUT
+  return 0;
+ }
+ if(a==descriptor+0x58){assert(n==1);*(unsigned char*)p=(unsigned char)live.mode;return 0;}
+ assert(!"unexpected read");return -1;
+}
 int main(void){
  /* delta reconstruction reproduces all six real layouts from backing alone */
  assert(fws_layout_from_backing(0x13200000, 0x2ed9fb8).container_ptr == 0x2ed9fe0);
@@ -68,5 +100,35 @@ int main(void){
  /* candidate selection: dedup + cap */
  uint32_t out[4]; uint64_t hits[] = {0x100000000, 0x100000000, 0x200000000};
  assert(fws_backing_candidates(hits, 3, out, 4) == 1 && out[0] == 0);
- puts("fw offset scan: layout deltas, cave cap, bounds and candidates passed");
+ /* --data scoring: the 13.00 layout is not in mbd_layouts[], it is derived
+  * from the backing hit alone through the same chain the payload uses:
+  * chunk hits -> candidate index -> DATA offset (chunk base + index*8) ->
+  * fws_layout_from_backing() -> production snapshot + eligibility. The chunk
+  * base 0x2ed9fb0 with the hit at index 1 lands on the probe-observed qword
+  * data_base+0x2ed9fb8. */
+ mbd_layout l13;
+ {
+  uint64_t chunk[3]={0x4141414141414141ULL,0x100000000ULL,0x4242424242424242ULL};
+  uint32_t idx=0;
+  assert(fws_backing_candidates(chunk,3,&idx,1)==1&&idx==1);
+  l13=fws_layout_from_backing(0x13000000u,0x2ed9fb0u+idx*8);
+ }
+ assert(l13.backing_base==0x2ed9fb8u&&l13.container_ptr==0x2ed9fe0u&&
+        l13.ext_global==0x2ee00b8u&&l13.references==0x2ee0110u&&
+        l13.profile==0x2ee1400u&&l13.maximum==0x2ee1418u);
+ layout=&l13;
+ memset(&live,0,sizeof live);live.container=0xffff800000001000ULL;
+ live.app_id=1;live.category=0xf000;live.mode=2;live.references=live.profile=1;
+ live.backing_base=0x100000000ULL;
+ live.available=live.backing_base+MBD_EXPECTED_STOCK+MBD_DELTA;
+ mbd_snapshot s;
+ /* live signature: eligible (container heap ptr, category 0xf000,
+  * references==profile==1, backing 0x100000000, available covers stock+delta) */
+ assert(!mbd_read_snapshot(&l13,&s)&&mbd_eligible(&s));
+ /* idle signature: container==0 -> snapshot reads fine but is not eligible */
+ live.container=0;live.references=0;live.profile=0;
+ assert(!mbd_read_snapshot(&l13,&s));
+ assert(!mbd_eligible(&s));
+ assert(s.extension==0&&s.maximum==0&&s.references==0&&s.container==0);
+ puts("fw offset scan: layout deltas, cave cap, bounds, candidates and DATA scoring passed");
 }

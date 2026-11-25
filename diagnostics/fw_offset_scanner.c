@@ -8,8 +8,33 @@
  * Modes are dispatched from argv: "--probe" runs the capability probe and is
  * also the DEFAULT when no arguments are given. prospero-deploy cannot pass
  * arguments to the payload (usage: prospero-deploy -h HOST PAYLOAD_PATH), so
- * a plain deploy must produce the probe output. Later phases add
- * "--data <live|idle>" and "--shellcore" to the same dispatch.
+ * a plain deploy must produce the probe output.
+ *
+ * Mode switch a deploy CAN trigger (prospero-deploy passes no argv): the
+ * payload reads the flag file /data/fwscan/mode, one line holding
+ * "data-live", "data-idle" or "data-write" (data-write = data-live plus one
+ * mbd_apply()/mbd_restore() byte cycle; DEFAULT OFF, never reachable from
+ * probe). An absent or unreadable file, or unknown content, falls back to the
+ * read-only probe (fail-safe direction). Create the file on the console
+ * before deploying, e.g.:
+ *   ssh (or ftp) : mkdir -p /data/fwscan && echo data-live > /data/fwscan/mode
+ * With argv, "--data <live|idle> [--expected-backing 0xOFF] [--write-test]"
+ * selects the mode directly; --expected-backing is idle-only (pins the live
+ * run's result when game state is gone) and --write-test is live-only.
+ * "--shellcore" is reserved for a later phase.
+ *
+ * --data scans [data_base, data_base+64MiB) in 1 MiB kernel_copyout chunks
+ * for the backing qword 0x100000000, translates candidate indices to DATA
+ * offsets (chunk base + index*8, fws_backing_candidates contract), rebuilds
+ * each layout via fws_layout_from_backing() and scores it through the
+ * production mbd_read_snapshot()/mbd_eligible(). Output is field values
+ * (qwords as value_hex), offsets, rc/errno and counts only - never raw
+ * buffers, never kernel TEXT. Exit 0 when exactly one candidate survives,
+ * 2 on wrong firmware, 3 when the surviving count is zero ("none") or greater
+ * than one ("ambiguous"; idle with --expected-backing counts only the pinned
+ * candidate), 4 when a requested write-test cycle does not come back clean.
+ * "scan_end" is the DATA-relative offset the scan stopped at (0x4000000 when
+ * complete; a chunk read failure stops early and is recorded there).
  *
  * Each line is an independent JSON object; keep stdout complete.
  */
@@ -23,6 +48,10 @@
 #include <sys/user.h>
 #include <ps5/kernel.h>
 #include "../src/dynlib.h" /* dynlib_obj_t/kernel_dynlib_obj, same calls as budget_mount_hook.h */
+/* Production snapshot/eligibility (MBD_KREAD=kernel_copyout via the header's
+ * default branch), then the pure derivation helpers (they need mbd_layout). */
+#include "../src/neo_budget_data.h"
+#include "fw_offset_scan.h"
 #define FORMAT "neo-fwscan-v1"
 #define SCAN_FW 0x13000000u
 #define NID "HRDq-RDIGmI"
@@ -157,11 +186,202 @@ static int probe_mode(void){
  fputs("}\n",stdout);
  return status;
 }
+/* --data mode. MODE_PATH holds one line: data-live, data-idle or data-write
+ * (see the header comment); absence, an unreadable file or unknown content
+ * leaves the payload in the read-only probe default. */
+#define MODE_PATH "/data/fwscan/mode"
+#define SCAN_BYTES 0x4000000ULL /* 64 MiB */
+#define CHUNK_BYTES ((size_t)1<<20)
+static int read_mode_file(char*buf,size_t cap){
+ FILE*f=fopen(MODE_PATH,"rb");
+ if(!f)return 0;
+ size_t n=fread(buf,1,cap-1,f);
+ fclose(f);
+ while(n&&(buf[n-1]=='\n'||buf[n-1]=='\r'||buf[n-1]==' '||buf[n-1]=='\t'))n--;
+ buf[n]=0;
+ return 1;
+}
+/* Count of running "eboot.bin" processes; -1 when the enumeration fails.
+ * Same bounded KERN_PROC_PROC enumeration as neo_diagnostic.c. */
+static int count_games(void){
+ int mib[]={CTL_KERN,KERN_PROC,KERN_PROC_PROC,0};size_t size=0;
+ if(sysctl(mib,4,NULL,&size,NULL,0)||!size||size>32*1024*1024-0x10000)return -1;
+ size+=0x10000;unsigned char*b=malloc(size);
+ if(!b)return -1;
+ int rc=sysctl(mib,4,b,&size,NULL,0),count=-1;
+ if(!rc){
+  count=0;size_t off=0;
+  while(off+sizeof(struct kinfo_proc)<=size){
+   struct kinfo_proc*k=(void*)(b+off);
+   if(k->ki_structsize<(int)sizeof(*k)||(size_t)k->ki_structsize>size-off)break;
+   if(!strcmp(k->ki_comm,"eboot.bin"))count++;
+   off+=(size_t)k->ki_structsize;
+  }
+ }
+ free(b);return count;
+}
+static void print_layout(const mbd_layout*L){
+ printf("{\"fw\":\"0x%08x\",\"backing_base\":\"0x%lx\",\"container_ptr\":\"0x%lx\","
+        "\"ext_global\":\"0x%lx\",\"references\":\"0x%lx\",\"profile\":\"0x%lx\","
+        "\"maximum\":\"0x%lx\"}",L->fw,(unsigned long)L->backing_base,
+        (unsigned long)L->container_ptr,(unsigned long)L->ext_global,
+        (unsigned long)L->references,(unsigned long)L->profile,
+        (unsigned long)L->maximum);
+}
+static void print_snapshot(const mbd_snapshot*s){
+ printf("{\"extension\":");hexq(s->extension);
+ fputs(",\"container\":",stdout);hexq(s->container);
+ printf(",\"references\":\"0x%lx\",\"profile\":\"0x%lx\"",
+        (unsigned long)s->references,(unsigned long)s->profile);
+ fputs(",\"maximum\":",stdout);hexq(s->maximum);
+ fputs(",\"backing_base\":",stdout);hexq(s->backing_base);
+ fputs(",\"available\":",stdout);hexq(s->available);
+ printf(",\"field38\":");hexq(s->field38);
+ fputs(",\"reserved\":",stdout);hexq(s->reserved);
+ printf(",\"app_id\":\"0x%lx\",\"category\":\"0x%lx\",\"mode\":\"0x%lx\",\"flags\":\"0x%lx\"}",
+        (unsigned long)s->app_id,(unsigned long)s->category,
+        (unsigned long)s->mode,(unsigned long)s->flags);
+}
+static int data_mode(const char*state,int write_test,uint64_t expected_backing){
+ int status=1;const char*reason="firmware_query_failed";
+ uint32_t fw=0;size_t fw_size=4;errno=0;
+ int fw_rc=sysctlbyname("machdep.upd_version",&fw,&fw_size,NULL,0),fw_error=errno;
+ int fw_ok=!fw_rc&&fw_size==4&&fw==SCAN_FW;
+ uint64_t data_base=(uint64_t)KERNEL_ADDRESS_DATA_BASE;
+ int games=count_games();
+ if(fw_rc)status=1;
+ else if(!fw_ok){reason="wrong_firmware";status=2;}
+ else{reason=NULL;status=0;}
+ begin("state");printf(",\"mode\":\"data\",\"state\":");string(state);
+ printf(",\"firmware_raw\":");
+ if(!fw_rc&&fw_size==4)printf("\"0x%08x\"",fw);else fputs("null",stdout);
+ printf(",\"firmware_rc\":%d,\"firmware_errno\":%d,\"data_base\":",fw_rc,fw_error);
+ hexq(data_base);
+ printf(",\"scan_bytes\":\"0x%lx\",\"chunk_bytes\":\"0x%lx\",\"expected_backing\":",
+        (unsigned long)SCAN_BYTES,(unsigned long)CHUNK_BYTES);
+ if(expected_backing)printf("\"0x%lx\"",(unsigned long)expected_backing);
+ else fputs("null",stdout);
+ printf(",\"game_count\":");
+ if(games>=0)printf("%d",games);else fputs("null",stdout);
+ fputs("}\n",stdout);
+ unsigned candidate_count=0,eligible_count=0,idle_count=0;int scan_complete=0,pinned_ok=0;
+ uint64_t scan_end=0;unsigned long long qwords=0;
+ mbd_layout elig_layout;mbd_snapshot elig_snap;int have_elig=0;int write_ran=0;
+ if(!status){
+  unsigned char*raw=malloc(CHUNK_BYTES);
+  uint64_t*hits=malloc(CHUNK_BYTES);
+  scan_complete=raw&&hits;
+  if(scan_complete){
+   scan_end=SCAN_BYTES;
+   for(uint64_t off=0;off<SCAN_BYTES;off+=CHUNK_BYTES){
+    if(kernel_copyout((intptr_t)(data_base+off),raw,CHUNK_BYTES)){
+     scan_complete=0;scan_end=off;break;
+    }
+    memcpy(hits,raw,CHUNK_BYTES);
+    uint32_t idx[8];
+    /* Dedup means at most one candidate per chunk (first 0x100000000 only). */
+    int n=fws_backing_candidates(hits,CHUNK_BYTES/8,idx,8);
+    qwords+=CHUNK_BYTES/8;
+    for(int i=0;i<n;i++){
+     uint32_t backing_off=(uint32_t)(off+(uint64_t)idx[i]*8);
+     mbd_layout L=fws_layout_from_backing(SCAN_FW,backing_off);
+     mbd_snapshot s;
+     errno=0;
+     int read_rc=mbd_read_snapshot(&L,&s);
+     int eligible=!read_rc&&mbd_eligible(&s);
+     /* Idle acceptance: stock extension/maximum and the backing qword still
+      * 0x100000000 at this layout (the container is 0 when idle, so the
+      * snapshot is not mbd_eligible by design). */
+     uint64_t backing_q=0;
+     int idle_ok=!read_rc&&!kernel_copyout((intptr_t)(data_base+L.backing_base),&backing_q,8)
+                 &&!s.extension&&!s.maximum&&backing_q==0x100000000ULL;
+     candidate_count++;
+     begin("candidate");printf(",\"mode\":\"data\",\"state\":");string(state);
+     printf(",\"backing_off\":\"0x%lx\",\"layout\":",(unsigned long)backing_off);
+     print_layout(&L);
+     fputs(",\"snapshot\":",stdout);
+     if(read_rc)printf("{\"read_rc\":%d,\"errno\":%d}",read_rc,errno);
+     else{fputs("{\"read_rc\":0,",stdout);print_snapshot(&s);putchar('}');}
+     printf(",\"eligible\":%s,\"idle_ok\":%s}\n",eligible?"true":"false",
+            idle_ok?"true":"false");
+     if(eligible){eligible_count++;if(!have_elig){have_elig=1;elig_layout=L;elig_snap=s;}}
+     if(idle_ok)idle_count++;
+     if(expected_backing&&backing_off==expected_backing)pinned_ok=idle_ok;
+    }
+   }
+  }
+  free(raw);free(hits);
+  /* Live verdict: exactly one eligible candidate. Idle verdict: exactly one
+   * candidate at the pinned layout passing the idle criteria (or, unpinned,
+   * exactly one idle_ok candidate). */
+  unsigned surviving=!strcmp(state,"idle")
+      ?(unsigned)(expected_backing?pinned_ok:idle_count)
+      :eligible_count;
+  const char*verdict=NULL;
+  if(!surviving)verdict=scan_complete?"none":"scan_incomplete";
+  else if(surviving>1)verdict="ambiguous";
+  if(verdict){reason=verdict;status=3;}
+  /* Write-test: DEFAULT OFF; only after a clean live run, one apply/restore
+   * byte cycle through the production transaction code (MBD_KWRITE). */
+  if(write_test&&status==0&&have_elig){
+   write_ran=1;
+   mbd_transaction tx;memset(&tx,0,sizeof tx);
+   int rc=mbd_apply(&elig_layout,&tx,&elig_snap);
+   int restore_rc=mbd_restore(&elig_layout,&tx);
+   uint64_t readback=0;errno=0;
+   int rb_rc=mbd_tx_read_global(&elig_layout,&readback);
+   begin("write_test");printf(",\"mode\":\"data\",\"state\":");string(state);
+   printf(",\"backing_off\":\"0x%lx\",\"rc\":%d,\"readback\":",
+          (unsigned long)elig_layout.backing_base,rc);
+   if(!rb_rc)hexq(readback);else fputs("null",stdout);
+   printf(",\"restored\":%s,\"restore_rc\":%d,\"timing\":\"mid_session_not_production\"}\n",
+          tx.restored?"true":"false",restore_rc);
+   if(rc||!tx.restored||restore_rc||rb_rc||readback)status=4;
+  }
+ }
+ begin("end");printf(",\"mode\":\"data\",\"state\":");string(state);
+ printf(",\"scan_complete\":%s,\"scan_end\":\"0x%lx\",\"qwords_scanned\":%llu,"
+        "\"candidate_count\":%u,\"eligible_count\":%u,\"idle_count\":%u,"
+        "\"write_test_ran\":%s,\"reason\":",scan_complete?"true":"false",
+        scan_end,qwords,candidate_count,eligible_count,idle_count,
+        write_ran?"true":"false");
+ if(reason)string(reason);else fputs("null",stdout);
+ printf(",\"ok\":%s}\n",status?"false":"true");
+ return status;
+}
+
 int main(int argc,char**argv){
  setvbuf(stdout,NULL,_IONBF,0);
- const char*mode=argc>1?argv[1]:"--probe";
- if(!strcmp(mode,"--probe"))return probe_mode();
- begin("error");printf(",\"mode\":");string(mode);
- fputs(",\"reason\":\"unknown_mode\"}\n",stdout);
- return 1;
+ const char*mode=argc>1?argv[1]:NULL;
+ if(mode&&!strcmp(mode,"--probe"))return probe_mode();
+ if(mode&&!strcmp(mode,"--data")){
+  const char*st=argc>2?argv[2]:NULL;
+  const char*eb=NULL;int write_test=0;
+  for(int i=3;i<argc;i++){
+   if(!strcmp(argv[i],"--write-test"))write_test=1;
+   else if(!strcmp(argv[i],"--expected-backing")&&i+1<argc)eb=argv[++i];
+   else{begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_args\"}\n");return 1;}
+  }
+  uint64_t expected=eb?(uint64_t)strtoull(eb,NULL,0):0;
+  if(eb&&(!expected||!st||strcmp(st,"idle"))){
+   /* --expected-backing pins the idle verdict to the live run's result. */
+   begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_args\"}\n");return 1;
+  }
+  if(st&&!strcmp(st,"live"))return data_mode("live",write_test,0);
+  begin("error");printf(",\"mode\":\"--data\",\"reason\":\"bad_state\"}\n");return 1;
+ }
+ if(mode){
+  begin("error");printf(",\"mode\":");string(mode);
+  fputs(",\"reason\":\"unknown_mode\"}\n",stdout);
+  return 1;
+ }
+ /* No argv: the deployable path. The flag file selects the mode; anything
+  * else (absent file, unknown content) stays on the read-only probe. */
+ char flag[32];
+ if(read_mode_file(flag,sizeof flag)){
+  if(!strcmp(flag,"data-live"))return data_mode("live",0,0);
+  if(!strcmp(flag,"data-idle"))return data_mode("idle",0,0);
+  if(!strcmp(flag,"data-write"))return data_mode("live",1,0);
+ }
+ return probe_mode();
 }
