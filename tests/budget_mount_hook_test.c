@@ -63,6 +63,11 @@ static void reset(uint32_t fw){
 }
 static void field(unsigned off,uint32_t value){assert(!bm_field(off,value));}
 int main(void){
+ /* 13.00 tuple verbatim from evidence/fw1300-shellcore.json ("bm_profile_initializer"). */
+ static const bm_profile expect1300={0x13000000,0x6d2570,0x6d33c1,0x1951d30,0x205b398,0x42850,0x195808c,0x195a000,0x195c000,
+  {0xe8,0x6a,0xe9,0x27,0x01},{0xff,0x25,0x62,0x96,0x70,0},0x18e8,0x198};
+ const bm_profile *p1300=bm_find(0x13000000);
+ assert(p1300&&!memcmp(p1300,&expect1300,sizeof expect1300));
  for(unsigned i=0;i<sizeof bm_profiles/sizeof bm_profiles[0];i++){
   uint32_t fw=bm_profiles[i].fw;const bm_profile*p=&bm_profiles[i];
   reset(fw);assert(!bm_install(fw,123456));assert(bm.attached&&!bm.fatal&&state==2&&stop_count==1&&continue_count==1);assert(!memcmp(at(call_address,5),bm.redirect,5));
@@ -87,7 +92,8 @@ int main(void){
   /* Other code before our reserved pool must not block installation or be
    * overwritten. Reproduce the observed 13.60 prefix, and a dense prefix. */
   reset(fw);size_t prefix_size=p->cave-p->padding;
-  unsigned char prefix[4096];assert(prefix_size<=sizeof prefix);
+  /* the prefix is bounded by one 16 KiB page (cave = max(align1k(padding), end-8192) < padding+0x4000) */
+  unsigned char prefix[0x4000];assert(prefix_size<=sizeof prefix);
   memset(prefix,0xcc,prefix_size);memcpy(at(MAIN_BASE+p->padding,prefix_size),prefix,prefix_size);
   assert(!bm_install(fw,1)&&bm.attached);
   assert(!memcmp(at(MAIN_BASE+p->padding,prefix_size),prefix,prefix_size));

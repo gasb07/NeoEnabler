@@ -1,5 +1,5 @@
 /* GPL-3.0-only. Host test of the ShellCore profile byte-check logic and the
- * profile record emitter. The 13.20 and 13.60 tuples are copied verbatim from
+ * profile record emitter. The 13.00, 13.20 and 13.60 tuples are copied verbatim from
  * src/budget_mount_hook.h (bm_profiles[]): mock memory built from a tuple must
  * PASS fws_bm_valid_dry_run() (the read-only twin of bm_valid(),
  * src/budget_mount_hook.h:109-123), and each single-field corruption must fail
@@ -32,7 +32,9 @@ static unsigned char *mem_text,*mem_lib;
 /* When set, mock_read fails for any read covering this absolute address. */
 static uint64_t fail_addr;static int fail_addr_set;
 
-/* verbatim src/budget_mount_hook.h bm_profiles[] rows: 13.20 and 13.60 */
+/* verbatim src/budget_mount_hook.h bm_profiles[] rows: 13.00, 13.20 and 13.60 */
+static const fws_profile p1300={0x13000000,0x6d2570,0x6d33c1,0x1951d30,0x205b398,0x42850,0x195808c,0x195a000,0x195c000,
+ {0xe8,0x6a,0xe9,0x27,0x01},{0xff,0x25,0x62,0x96,0x70,0x00},0x18e8,0x198};
 static const fws_profile p1320={0x13200000,0x6d6dc0,0x6d7c11,0x195b690,0x2067458,0x42850,0x19619ec,0x1962000,0x1964000,
  {0xe8,0x7a,0x3a,0x28,1},{0xff,0x25,0xc2,0xbd,0x70,0},0x18e8,0x198};
 static const fws_profile p1360={0x13600000,0x6d7af0,0x6d8941,0x195c3b0,0x2067460,0x42850,0x19626fc,0x1963000,0x1964000,
@@ -84,7 +86,9 @@ int main(int argc,char**argv){
  mem_text=malloc(MOCK_TEXT);mem_lib=malloc(MOCK_LIBSZ);
  assert(mem_text&&mem_lib);
  const char*fail=NULL;
- /* exact 13.20 and 13.60 bytes pass */
+ /* exact 13.00, 13.20 and 13.60 bytes pass */
+ build_mock(&p1300);
+ assert(fws_bm_valid_dry_run(MOCK_BASE,MOCK_LIB,&p1300,mock_read,NULL,&fail)==1&&!fail);
  build_mock(&p1320);
  assert(fws_bm_valid_dry_run(MOCK_BASE,MOCK_LIB,&p1320,mock_read,NULL,&fail)==1&&!fail);
  build_mock(&p1360);

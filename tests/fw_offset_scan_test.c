@@ -76,7 +76,7 @@ static int read_data(uint64_t a,void *p,size_t n){
  assert(!"unexpected read");return -1;
 }
 int main(void){
- /* delta reconstruction reproduces all six real layouts from backing alone */
+ /* delta reconstruction reproduces all seven real layouts from backing alone */
  assert(fws_layout_from_backing(0x13200000, 0x2ed9fb8).container_ptr == 0x2ed9fe0);
  assert(fws_layout_from_backing(0x13200000, 0x2ed9fb8).ext_global   == 0x2ee00b8);
  assert(fws_layout_from_backing(0x13200000, 0x2ed9fb8).references   == 0x2ee0110);
@@ -103,6 +103,12 @@ int main(void){
  assert(fws_layout_from_backing(0x12700000, 0x2e81fb8).references   == 0x2e88110);
  assert(fws_layout_from_backing(0x12700000, 0x2e81fb8).profile      == 0x2e89400);
  assert(fws_layout_from_backing(0x12700000, 0x2e81fb8).maximum      == 0x2e89418);
+ /* 13.00 shares the 13.20 backing block (evidence/fw1300-data.json "layout") */
+ assert(fws_layout_from_backing(0x13000000, 0x2ed9fb8).container_ptr == 0x2ed9fe0);
+ assert(fws_layout_from_backing(0x13000000, 0x2ed9fb8).ext_global   == 0x2ee00b8);
+ assert(fws_layout_from_backing(0x13000000, 0x2ed9fb8).references   == 0x2ee0110);
+ assert(fws_layout_from_backing(0x13000000, 0x2ed9fb8).profile      == 0x2ee1400);
+ assert(fws_layout_from_backing(0x13000000, 0x2ed9fb8).maximum      == 0x2ee1418);
  assert(fws_layout_from_backing(0x13600000, 0x2eedfb8).container_ptr == 0x2eedfe0);
  assert(fws_layout_from_backing(0x13600000, 0x2eedfb8).ext_global   == 0x2ef40b8);
  assert(fws_layout_from_backing(0x13600000, 0x2eedfb8).references   == 0x2ef4110);
@@ -136,8 +142,9 @@ int main(void){
  assert(fws_backing_candidates(hits, 3, out, 1) == -1);  /* cap=1, 2 matches: truncated */
  uint64_t none[] = {1, 2, 0x100000001};
  assert(fws_backing_candidates(none, 3, out, 4) == 0);   /* no matches */
- /* --data scoring: the 13.00 layout is not in mbd_layouts[], it is derived
-  * from the backing hit alone through the same chain the payload uses:
+ /* --data scoring: the 13.00 layout is derived from the backing hit alone through
+  * the same chain the payload uses (independently of the stored mbd_layouts[] row,
+  * which the loop above cross-checks):
   * chunk hits -> candidate index -> DATA offset (chunk base + index*8) ->
   * fws_layout_from_backing() -> production snapshot + eligibility. The chunk
   * base 0x2ed9fb0 with the hit at index 1 lands on the probe-observed qword
