@@ -64,6 +64,66 @@ static inline int fws_reserve_bounds_ok(uint32_t padding, uint32_t cave, uint32_
  return !(cave&1023U)&&cave>=padding&&end==fws_end(padding)&&end-cave<=8192U;
 }
 
+/* ShellCore BeginAppMount2 profile: the same fields as bm_profile
+ * (src/budget_mount_hook.h:12-18) without including that header (it drags in
+ * process control). Discovery populates it; fws_bm_valid_dry_run() re-checks
+ * the bm_valid() byte semantics read-only against it. */
+typedef struct {
+ uint32_t fw, function, call, import_, got, wrapper, padding, cave, end;
+ unsigned char call_bytes[5], stub[6];
+ uint32_t function_stack, wrapper_stack;
+} fws_profile;
+
+/* The shared 16-byte prologue prefix (push rbp; mov rbp,rsp; push r15; push
+ * r14; push r13; push r12; push rbx; sub rsp,imm32). The imm32 at +16 (frame
+ * size) is DATA derived from the bytes found, never hardcoded. */
+#define FWS_PROLOGUE_LEN 16
+static const unsigned char FWS_PROLOGUE16[FWS_PROLOGUE_LEN]={
+ 0x55,0x48,0x89,0xe5,0x41,0x57,0x41,0x56,0x41,0x55,0x41,0x54,0x53,0x48,0x81,0xec};
+
+/* Read-only twin of bm_valid() (src/budget_mount_hook.h:109-123): the same
+ * checks in the same order - 20-byte ShellCore prologue (FWS_PROLOGUE16 with
+ * the profile function_stack at +16) at base+function, call_bytes[5] at
+ * base+call, stub[6] at base+import_, GOT qword at base+got == lib+wrapper,
+ * wrapper prologue (wrapper_stack at +16) at the GOT target - with the memory
+ * read injected so host tests feed mock bytes and the console payload reads
+ * through kernel_proc_copyout. Returns 1 on pass; on failure 0 and
+ * *failing_check names the check: "<name>" on a byte mismatch,
+ * "<name>_unreadable" when the read fails. Check names: prologue, call_bytes,
+ * stub, got_target, wrapper. */
+typedef int (*fws_read_mem)(void*,uint64_t,void*,size_t);
+static inline int fws_bm_valid_dry_run(uint64_t base,uint64_t lib,const fws_profile*p,
+                                       fws_read_mem read_mem,void*ctx,
+                                       const char**failing_check){
+ unsigned char want_pro[20],want_wrap[20],actual[24];
+ uint64_t got_value=0;
+ const char*fail=NULL;
+ memcpy(want_pro,FWS_PROLOGUE16,FWS_PROLOGUE_LEN);
+ memcpy(want_pro+16,&p->function_stack,4);
+ memcpy(want_wrap,FWS_PROLOGUE16,FWS_PROLOGUE_LEN);
+ memcpy(want_wrap+16,&p->wrapper_stack,4);
+ if(read_mem(ctx,base+p->function,actual,sizeof want_pro))fail="prologue_unreadable";
+ else if(memcmp(actual,want_pro,sizeof want_pro))fail="prologue";
+ if(!fail){
+  if(read_mem(ctx,base+p->call,actual,5))fail="call_unreadable";
+  else if(memcmp(actual,p->call_bytes,5))fail="call_bytes";
+ }
+ if(!fail){
+  if(read_mem(ctx,base+p->import_,actual,6))fail="stub_unreadable";
+  else if(memcmp(actual,p->stub,6))fail="stub";
+ }
+ if(!fail){
+  if(read_mem(ctx,base+p->got,&got_value,8))fail="got_unreadable";
+  else if(got_value!=lib+p->wrapper)fail="got_target";
+ }
+ if(!fail){
+  if(read_mem(ctx,got_value,actual,sizeof want_wrap))fail="wrapper_unreadable";
+  else if(memcmp(actual,want_wrap,sizeof want_wrap))fail="wrapper";
+ }
+ *failing_check=fail;
+ return !fail;
+}
+
 /* Index-vs-offset contract: out[] receives indices into hits[], never DATA
  * offsets. The caller translates index -> DATA offset as scan base + index*8,
  * where the scan base is the DATA offset of hits[0]. Only the value

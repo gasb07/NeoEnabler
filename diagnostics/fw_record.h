@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../src/neo_budget_data.h"
+#include "fw_offset_scan.h" /* fws_profile (bm_profile shape without the process-control header) */
 
 #define FWS_FORMAT "neo-fwscan-v1"
 
@@ -56,4 +57,33 @@ static inline void fws_print_candidate(FILE*f,const char*state,uint32_t backing_
  else{fputs("\"read_rc\":0,",f);fws_print_snapshot(f,s);fputc('}',f);}
  fprintf(f,",\"eligible\":%s,\"idle_ok\":%s}\n",eligible?"true":"false",
             idle_ok?"true":"false");
+}
+
+/* ShellCore profile record (mode shellcore): exactly one brace level around
+ * the "profile" object and around "bm_valid_dry_run", both opened and closed
+ * here. padding_source names the derivation method (textsize | rx_tail_scan |
+ * zero_run_scan; null when no padding was derived); failing_check is null on
+ * a passing dry run, otherwise the first failed bm_valid check. */
+static inline void fws_print_bytes(FILE*f,const unsigned char*b,size_t n){
+ for(size_t i=0;i<n;i++)fprintf(f,"%02x",b[i]);
+}
+static inline void fws_print_profile(FILE*f,const fws_profile*p,const char*padding_source,
+                                     int reserve_ok,int dryrun_pass,const char*failing_check){
+ fprintf(f,"{\"format\":\"" FWS_FORMAT "\",\"record\":\"profile\",\"mode\":\"shellcore\",\"fw\":\"0x%08x\","
+         "\"profile\":{\"function\":\"0x%lx\",\"call\":\"0x%lx\",\"import_\":\"0x%lx\",\"got\":\"0x%lx\","
+         "\"wrapper\":\"0x%lx\",\"padding\":\"0x%lx\",\"cave\":\"0x%lx\",\"end\":\"0x%lx\",\"call_bytes_hex\":\"",
+   p->fw,(unsigned long)p->function,(unsigned long)p->call,(unsigned long)p->import_,
+   (unsigned long)p->got,(unsigned long)p->wrapper,(unsigned long)p->padding,
+   (unsigned long)p->cave,(unsigned long)p->end);
+ fws_print_bytes(f,p->call_bytes,5);
+ fputs("\",\"stub_hex\":\"",f);
+ fws_print_bytes(f,p->stub,6);
+ fprintf(f,"\",\"function_stack\":\"0x%lx\",\"wrapper_stack\":\"0x%lx\"},",
+   (unsigned long)p->function_stack,(unsigned long)p->wrapper_stack);
+ fputs("\"padding_source\":",f);
+ if(padding_source)fprintf(f,"\"%s\"",padding_source);else fputs("null",f);
+ fprintf(f,",\"reserve_bounds_ok\":%s,\"bm_valid_dry_run\":{\"pass\":%s,\"failing_check\":",
+   reserve_ok?"true":"false",dryrun_pass?"true":"false");
+ if(failing_check)fprintf(f,"\"%s\"",failing_check);else fputs("null",f);
+ fputs("}}\n",f);
 }
