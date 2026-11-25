@@ -87,3 +87,21 @@ static inline void fws_print_profile(FILE*f,const fws_profile*p,const char*paddi
  if(failing_check)fprintf(f,"\"%s\"",failing_check);else fputs("null",f);
  fputs("}}\n",f);
 }
+
+/* One e8 site of the blessed import_ (Ruling 2 evidence): site offset,
+ * enclosing function (nearest 20-byte prologue), its byte-derived stack, the
+ * gap against the 0xe51 invariant, where the real-prologue filter found the
+ * entry (null when the site does not survive) and the verdict. Array
+ * element: the caller owns the surrounding [ ] and commas. */
+static inline void fws_print_site(FILE*f,uint64_t site,uint64_t function,
+                                  uint32_t function_stack,uint64_t function_gap,
+                                  uint64_t real_prologue_at,int survives){
+ fprintf(f,"{\"site\":\"0x%lx\",\"function\":\"0x%lx\",\"function_stack\":\"0x%lx\","
+           "\"function_gap\":\"0x%lx\",\"real_prologue_at\":",
+   (unsigned long)site,(unsigned long)function,(unsigned long)function_stack,
+   (unsigned long)function_gap);
+ if(real_prologue_at)fprintf(f,"\"0x%lx\"",(unsigned long)real_prologue_at);
+ else fputs("null",f);
+ fprintf(f,",\"prologue_window\":\"0x%lx\",\"survives\":%s}",
+   (unsigned long)FWS_PROLOGUE_WINDOW,survives?"true":"false");
+}

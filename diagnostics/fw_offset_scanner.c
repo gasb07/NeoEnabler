@@ -484,6 +484,9 @@ typedef struct {
  uint32_t wrapper,wrapper_stack;
  uint32_t call_off[4];
  unsigned calls;
+ /* per-candidate Ruling-1 evidence (byte-derived) */
+ uint32_t function,function_stack,gap;
+ unsigned invariants;
 } sc_stub;
 #define SC_MAX_STUBS 64
 static int sc_scan_stubs(const unsigned char*mb,size_t msize,const unsigned char*lb,
@@ -509,6 +512,8 @@ static int sc_scan_stubs(const unsigned char*mb,size_t msize,const unsigned char
   out[*count].call_off[0]=0;out[*count].call_off[1]=0;
   out[*count].call_off[2]=0;out[*count].call_off[3]=0;
   out[*count].calls=0;
+  out[*count].function=0;out[*count].function_stack=0;
+  out[*count].gap=0;out[*count].invariants=0;
   (*count)++;
  }
  return 0;
@@ -569,6 +574,14 @@ typedef struct {int pid;} sc_read_ctx;
 static int sc_read_mem(void*ctx,uint64_t addr,void*buf,size_t n){
  return kernel_proc_copyout(((sc_read_ctx*)ctx)->pid,(intptr_t)addr,buf,n);
 }
+/* Ruling-2 site evidence for the blessed import_ (filled during selection,
+ * printed in the session record). */
+typedef struct {
+ uint64_t site,function,real_prologue_at;
+ uint32_t function_stack,gap;
+ int survives;
+} sc_siteev;
+#define SC_MAX_SITES 64
 /* padding derivation (Task-3 adjusted), in priority order:
  *  - "textsize": only when main.textsize reads plausible (< mapsize,
  *    > 0x10000). On 13.00 it reads kernel-ptr-like garbage, so this is the
@@ -661,6 +674,7 @@ static int shellcore_mode(void){
  uint64_t nid_main_off=0,nid_lib_off=0;
  int main_ehdr_ok=0,lib_ehdr_ok=0;uint16_t main_phnum=0,lib_phnum=0;
  const char*strategy=NULL;
+ const char*selection_rule=NULL;
  uint64_t got_off=0,wrapper=0,import_off=0,call_off=0,function_off=0;
  uint32_t function_stack=0,wrapper_stack=0;
  unsigned char call_bytes[5]={0},stub_bytes[6]={0};
@@ -672,6 +686,8 @@ static int shellcore_mode(void){
  uint64_t prologue_total=0;
  int have_profile=0;
  uint64_t sites[16];unsigned site_count=0,site_trunc=0;
+ sc_siteev b_ev[SC_MAX_SITES];uint32_t b_sites[SC_MAX_SITES];
+ unsigned b_count=0,b_surviving=0;int b_trunc=0;uint64_t b_call=0;
  fws_profile P;memset(&P,0,sizeof P);
  if(!reason){
   pid=find_proc("SceShellCore");
@@ -764,52 +780,86 @@ static int shellcore_mode(void){
     }
    }
   }
-  /* Stage B (documented fallback, expected path): the unique PLT stub into
-   * libkernel_sys with the profile prologue that has exactly one e8 caller. */
-  if(!st&&!strategy){
-   /* The profile's call is the UNIQUE e8 rel32 targeting import_: a stub
-    * with 0 callers is not BeginAppMount2 (it is called), a stub with >1
-    * callers has no unique call. Exactly one stub may carry exactly one
-    * caller. */
-   sc_stub*win=NULL;int winners=0,callable=0;
-   for(int k=0;k<stub_count;k++){
-    if(!stubs[k].calls)continue;
-    callable++;
-    if(stubs[k].calls>1)continue;
-    if(!winners)win=&stubs[k];
-    winners++;
-   }
-   if(!winners){
-    reason=callable?"call_ambiguous":"no_stub_with_call";
-    status=3;
-    if(callable)for(int k=0;k<stub_count&&site_count<16;k++){
-     if(stubs[k].calls<=1)continue;
-     for(unsigned c=0;c<stubs[k].calls&&c<4;c++)
-      if(site_count<16)sites[site_count++]=stubs[k].call_off[c];
-     if(stubs[k].calls>4)site_trunc=1;
-    }
-   }else if(winners>1){
-    reason="stub_ambiguous";status=3;
+  /* Stage B (blessed path, ledger "Task 5: CONTROLLER RULING"): Ruling 1
+   * qualifies stubs by the four-invariant signature (all four values are
+   * DERIVED from console bytes per candidate and must match 4/4 - the rule
+   * selects, it never writes the answer); Ruling 2 then picks `call` among
+   * the blessed stub's e8 sites by the real-prologue filter. */
+   if(!st&&!strategy){
+    /* per-candidate evidence: enclosing function (nearest 20-byte prologue
+     * before the first caller), its byte-derived stack, gap, and the
+     * signature match count */
     for(int k=0;k<stub_count;k++){
-     if(stubs[k].calls!=1)continue;
-     if(site_count<16)sites[site_count++]=stubs[k].stub_off;
-     else{site_trunc=1;break;}
+     uint64_t ptotal;
+     if(!stubs[k].calls)continue;
+     stubs[k].function=(uint32_t)sc_nearest_prologue(mb,stubs[k].call_off[0],&ptotal);
+     if(stubs[k].function)memcpy(&stubs[k].function_stack,mb+stubs[k].function+16,4);
+     stubs[k].gap=stubs[k].call_off[0]-stubs[k].function;
+     stubs[k].invariants=fws_signature_match(stubs[k].wrapper,stubs[k].wrapper_stack,
+                                             stubs[k].function_stack,stubs[k].gap);
     }
-   }else{
-    strategy="plt_stub";got_off=win->got_off;import_off=win->stub_off;
-    wrapper=win->wrapper;wrapper_stack=win->wrapper_stack;
+    sc_stub*win=NULL;int qualifiers=0;
+    for(int k=0;k<stub_count;k++){
+     if(!stubs[k].calls||stubs[k].invariants!=4)continue;
+     if(!qualifiers)win=&stubs[k];
+     qualifiers++;
+    }
+    selection_rule="four_invariant_signature";
+    if(!qualifiers){reason="signature_unmatched";status=1;}
+    else if(qualifiers>1){
+     reason="signature_ambiguous";status=3;
+     for(int k=0;k<stub_count;k++){
+      if(!stubs[k].calls||stubs[k].invariants!=4)continue;
+      if(site_count<16)sites[site_count++]=stubs[k].stub_off;
+      else{site_trunc=1;break;}
+     }
+    }else{
+     strategy="four_invariant_signature";
+     got_off=win->got_off;import_off=win->stub_off;
+     wrapper=win->wrapper;wrapper_stack=win->wrapper_stack;
+     /* Ruling 2: enumerate ALL e8 rel32 sites targeting the blessed import_
+      * (callers live in text below the PLT), then keep only the sites whose
+      * enclosing function has a real prologue inside the window. */
+     uint64_t bound=win->stub_off;
+     for(uint64_t i=0;i+5<=bound;i++){
+      if(mb[i]!=0xe8)continue;
+      int32_t rel;memcpy(&rel,mb+i+1,4);
+      int64_t target=(int64_t)i+5+rel;
+      if(target!=(int64_t)import_off)continue;
+      if(b_count<SC_MAX_SITES){
+       uint64_t ptotal,rpat=0;
+       b_sites[b_count]=(uint32_t)i;
+       b_ev[b_count].site=i;
+       b_ev[b_count].function=sc_nearest_prologue(mb,i,&ptotal);
+       b_ev[b_count].function_stack=0;
+       if(b_ev[b_count].function)
+        memcpy(&b_ev[b_count].function_stack,mb+b_ev[b_count].function+16,4);
+       b_ev[b_count].gap=i-b_ev[b_count].function;
+       b_ev[b_count].survives=fws_site_real_prologue(mb,(size_t)main_obj.mapsize,i,&rpat);
+       b_ev[b_count].real_prologue_at=b_ev[b_count].survives?rpat:0;
+       if(b_ev[b_count].survives){b_surviving++;b_call=i;}
+       b_count++;
+      }else{b_trunc=1;break;}
+     }
+     if(b_trunc||b_surviving>1){
+      reason="site_ambiguous";status=3;
+      for(unsigned k=0;k<b_count&&site_count<16;k++)
+       if(b_ev[k].survives)sites[site_count++]=b_ev[k].site;
+      if(b_surviving>16)site_trunc=1;
+     }
+     else if(!b_surviving){reason="no_surviving_site";status=1;}
+     else call_off=b_call;
+    }
    }
   }
- }
- if(!reason&&strategy){
-  /* the winning stub's single caller (Stage A went through
-   * sc_import_for_got, which requires calls==1; Stage B checked it above) */
-  call_off=0;
-  for(int k=0;k<stub_count;k++)
-   if((uint64_t)stubs[k].stub_off==import_off&&stubs[k].calls==1)
-    call_off=stubs[k].call_off[0];
-  if(!call_off)reason="call_not_found";
- }
+  if(!reason&&strategy&&strcmp(strategy,"four_invariant_signature")){
+   /* Stage A paths: sc_import_for_got already required calls==1 */
+   call_off=0;
+   for(int k=0;k<stub_count;k++)
+    if((uint64_t)stubs[k].stub_off==import_off&&stubs[k].calls==1)
+     call_off=stubs[k].call_off[0];
+   if(!call_off)reason="call_not_found";
+  }
  if(!reason&&strategy){
   memcpy(call_bytes,mb+call_off,5);
   memcpy(stub_bytes,mb+import_off,6);
@@ -878,21 +928,17 @@ static int shellcore_mode(void){
  if(mb){
   unsigned printed=0;
   for(int k=0;k<stub_count;k++){
-   uint32_t co,cf;uint32_t fs=0;uint64_t gap,ptotal;
    if(!stubs[k].calls)continue;
    if(printed>=16){site_trunc=1;break;}
-   co=stubs[k].call_off[0];
-   cf=(uint32_t)sc_nearest_prologue(mb,co,&ptotal);
-   if(cf)memcpy(&fs,mb+cf+16,4);
-   gap=cf?co-cf:0;
    printf("%s{\"stub\":\"0x%lx\",\"got\":\"0x%lx\",\"wrapper\":\"0x%lx\","
           "\"wrapper_stack\":\"0x%lx\",\"caller_function\":\"0x%lx\","
-          "\"function_stack\":\"0x%lx\",\"function_gap\":\"0x%lx\",\"calls\":%u,"
-          "\"call_sites\":[",printed?",":"",
+          "\"function_stack\":\"0x%lx\",\"function_gap\":\"0x%lx\","
+          "\"invariants_matched\":%u,\"calls\":%u,\"call_sites\":[",printed?",":"",
           (unsigned long)stubs[k].stub_off,
           (unsigned long)stubs[k].got_off,(unsigned long)stubs[k].wrapper,
           (unsigned long)stubs[k].wrapper_stack,
-          (unsigned long)cf,(unsigned long)fs,(unsigned long)gap,stubs[k].calls);
+          (unsigned long)stubs[k].function,(unsigned long)stubs[k].function_stack,
+          (unsigned long)stubs[k].gap,stubs[k].invariants,stubs[k].calls);
    for(unsigned c=0;c<stubs[k].calls&&c<4;c++)
     printf("%s\"0x%lx\"",c?",":"",(unsigned long)stubs[k].call_off[c]);
    if(stubs[k].calls>4)printf("],\"call_sites_trunc\":true}");
@@ -900,7 +946,21 @@ static int shellcore_mode(void){
    printed++;
   }
  }
- fputs("]",stdout);
+ fputs("],",stdout);
+ printf("\"selection_rule\":");
+ if(selection_rule)string(selection_rule);else fputs("null",stdout);
+ /* Ruling-2 site selection evidence for the blessed import_ (all sites,
+  * not just the winner: this is the bm single-call design evidence). */
+ if(b_count){
+  printf(",\"site_selection\":{\"stub\":\"0x%lx\",\"surviving\":%u,\"sites_truncated\":%s,"
+         "\"sites\":[",(unsigned long)import_off,b_surviving,b_trunc?"true":"false");
+  for(unsigned k=0;k<b_count;k++){
+   printf("%s",k?",":"");
+   fws_print_site(stdout,b_ev[k].site,b_ev[k].function,b_ev[k].function_stack,
+                  b_ev[k].gap,b_ev[k].real_prologue_at,b_ev[k].survives);
+  }
+  fputs("]}",stdout);
+ }
  printf(",\"padding_source\":");
  if(padding_source)string(padding_source);else fputs("null",stdout);
  printf(",\"rx_end\":");

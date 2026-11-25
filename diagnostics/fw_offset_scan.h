@@ -92,6 +92,57 @@ static const unsigned char FWS_PROLOGUE16[FWS_PROLOGUE_LEN]={
  * "<name>_unreadable" when the read fails. Check names: prologue, call_bytes,
  * stub, got_target, wrapper. */
 typedef int (*fws_read_mem)(void*,uint64_t,void*,size_t);
+
+/* Ruling "Task 5: CONTROLLER RULING" (SDD ledger): the blessed four-invariant
+ * signature, measured on the stored profiles (src/budget_mount_hook.h):
+ * wrapper 0x42850 is the 13.20 AND 13.60 row value, wrapper_stack 0x198 and
+ * function_stack 0x18e8 hold on 12.20-13.60, function_gap 0xe51 is the exact
+ * call-function distance on 12.20/13.20/13.60 (0x6d7c11-0x6d6dc0 and
+ * 0x6d8941-0x6d7af0). The scanner DERIVES all four per candidate from
+ * console bytes and requires 4/4: the rule SELECTS among candidates, it
+ * never writes the answer. Returns the match count 0..4; a candidate
+ * qualifies only at 4. */
+#define FWS_SIG_WRAPPER        0x42850u
+#define FWS_SIG_WRAPPER_STACK  0x198u
+#define FWS_SIG_FUNCTION_STACK 0x18e8u
+#define FWS_SIG_FUNCTION_GAP   0xe51u
+static inline unsigned fws_signature_match(uint32_t wrapper,uint32_t wrapper_stack,
+                                           uint32_t function_stack,uint32_t function_gap){
+ unsigned n=0;
+ if(wrapper==FWS_SIG_WRAPPER)n++;
+ if(wrapper_stack==FWS_SIG_WRAPPER_STACK)n++;
+ if(function_stack==FWS_SIG_FUNCTION_STACK)n++;
+ if(function_gap==FWS_SIG_FUNCTION_GAP)n++;
+ return n;
+}
+
+/* Site filter (spec Phase 2 step 3 + ledger Ruling 2): among the e8 rel32
+ * sites targeting the blessed import_, a site survives when its enclosing
+ * function has a real prologue - `55 48 89 e5` (push rbp; mov rbp,rsp) with
+ * a `48 81 ec imm32` (sub rsp,imm32) at +4..+13, covering both the short
+ * form and the 12.xx-13.xx push-heavy form (whose sub sits at +13) - found
+ * scanning backward from the site within FWS_PROLOGUE_WINDOW bytes. The
+ * window is 0x4000: generous enough for any compiled function tail, tight
+ * enough to exclude unrelated code (justified in the record as
+ * prologue_window). A site with no such prologue in the window sits in data
+ * or an entry-less function and is not patchable evidence. Returns 1 and
+ * *prologue_at (the entry offset) on survival, 0 otherwise. */
+#define FWS_PROLOGUE_WINDOW 0x4000u
+static inline int fws_site_real_prologue(const unsigned char*buf,size_t size,
+                                         uint64_t site,uint64_t*prologue_at){
+ static const unsigned char pre[4]={0x55,0x48,0x89,0xe5};
+ static const unsigned char sub[3]={0x48,0x81,0xec};
+ if(site<21||site>size)return 0;
+ uint64_t lo=site>FWS_PROLOGUE_WINDOW?site-FWS_PROLOGUE_WINDOW:0;
+ for(uint64_t p=site-21;;p--){
+  if(!memcmp(buf+p,pre,4)){
+   for(unsigned j=4;j<=13;j++)
+    if(!memcmp(buf+p+j,sub,3)){*prologue_at=p;return 1;}
+  }
+  if(p==lo)break;
+ }
+ return 0;
+}
 static inline int fws_bm_valid_dry_run(uint64_t base,uint64_t lib,const fws_profile*p,
                                        fws_read_mem read_mem,void*ctx,
                                        const char**failing_check){

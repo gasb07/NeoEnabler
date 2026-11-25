@@ -133,6 +133,72 @@ int main(int argc,char**argv){
  /* restored bytes pass again (no state leaked between runs) */
  build_mock(&p1320);
  assert(fws_bm_valid_dry_run(MOCK_BASE,MOCK_LIB,&p1320,mock_read,NULL,&fail)==1&&!fail);
+ /* Ruling 1: four-invariant signature counts matches; only 4/4 qualifies.
+  * Expected values: wrapper 0x42850 (13.20 AND 13.60 rows), wrapper_stack
+  * 0x198, function_stack 0x18e8 (12.20-13.60), function_gap 0xe51
+  * (0x6d7c11-0x6d6dc0 == 0x6d8941-0x6d7af0). */
+ assert(fws_signature_match(0x42850,0x198,0x18e8,0xe51)==4);   /* all four */
+ assert(fws_signature_match(0x42850,0x198,0x18e8,0xe50)==3);   /* 3/4 must NOT qualify */
+ assert(fws_signature_match(0x29190,0x898,0x8d8,0x8c3)==0);    /* a run-3 rival: 0/4 */
+ /* Ruling 2: site filter - a site survives when its enclosing function has a
+  * real prologue (55 48 89 e5 with 48 81 ec imm32 at +4..+13: the short form
+  * AND the 12.xx-13.xx push-heavy form) within FWS_PROLOGUE_WINDOW bytes
+  * backward from the site. */
+ {
+  static unsigned char t[0x18000];
+  uint64_t at=0;
+  memset(t,0x90,sizeof t); /* 0x90 filler never matches the patterns */
+  /* short form (sub at +4) inside the window survives */
+  memcpy(t+0x1000,"\x55\x48\x89\xe5\x48\x81\xec\x88\x07\x00\x00",11);
+  uint64_t site=0x1000+11+0x20;
+  assert(fws_site_real_prologue(t,sizeof t,site,&at)==1&&at==0x1000);
+  /* push-heavy form (sub at +13, the 20-byte shape) also survives */
+  memcpy(t+0x2000,"\x55\x48\x89\xe5\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xec\xe8\x18\x00\x00",20);
+  site=0x2000+20+0x30;
+  assert(fws_site_real_prologue(t,sizeof t,site,&at)==1&&at==0x2000);
+  /* prefix without a sub within +13 is not a prologue, and with no other
+   * prologue inside the whole window the site is excluded */
+  memcpy(t+0x10000,"\x55\x48\x89\xe5\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90",17);
+  site=0x10000+17+0x20;
+  assert(fws_site_real_prologue(t,sizeof t,site,&at)==0);
+  /* prologue just beyond the window edge is excluded; inside it survives */
+  memcpy(t+0x11000,"\x55\x48\x89\xe5\x48\x81\xec\x88\x07\x00\x00",11);
+  site=0x11000+11+FWS_PROLOGUE_WINDOW+0x10; /* end sits 0x10 past the window */
+  assert(fws_site_real_prologue(t,sizeof t,site,&at)==0);
+  site=0x11000+11+FWS_PROLOGUE_WINDOW-0x20; /* end well inside the window */
+  assert(fws_site_real_prologue(t,sizeof t,site,&at)==1&&at==0x11000);
+  /* site too close to the buffer start for any prologue: excluded, no OOB */
+  assert(fws_site_real_prologue(t,sizeof t,15,&at)==0);
+ }
+ /* Ruling 2 site evidence record: single-brace element, both ambiguous sites
+  * carry offset, enclosing function, stack, gap and the filter verdict. */
+ {
+  FILE*tmp=tmpfile();assert(tmp);
+  fws_print_site(tmp,0x6d33c1,0x6d2570,0x18e8,0xe51,0x6d2570,1);
+  rewind(tmp);
+  char line[512];
+  assert(fgets(line,sizeof line,tmp));
+  /* array element: one balanced brace pair, no nested comma-brace bug */
+  assert(line[0]=='{');
+  assert(line[strlen(line)-1]=='}');
+  assert(!strstr(line,",{"));
+  assert(strstr(line,"\"site\":\"0x6d33c1\""));
+  assert(strstr(line,"\"function\":\"0x6d2570\""));
+  assert(strstr(line,"\"function_stack\":\"0x18e8\""));
+  assert(strstr(line,"\"function_gap\":\"0xe51\""));
+  assert(strstr(line,"\"real_prologue_at\":\"0x6d2570\""));
+  assert(strstr(line,"\"survives\":true"));
+  fclose(tmp);
+  tmp=tmpfile();assert(tmp);
+  fws_print_site(tmp,0x83213c,0x831f00,0x1a0,0x23c,0,0);
+  rewind(tmp);
+  assert(fgets(line,sizeof line,tmp));
+  assert(line[0]=='{'&&line[strlen(line)-1]=='}');
+  assert(strstr(line,"\"site\":\"0x83213c\""));
+  assert(strstr(line,"\"real_prologue_at\":null"));
+  assert(strstr(line,"\"survives\":false"));
+  fclose(tmp);
+ }
  /* padding -> end -> cave chain reproduces the stored 13.20/13.60 bounds */
  assert(fws_end(p1320.padding)==0x1964000&&fws_cave(p1320.padding,0x1964000)==0x1962000);
  assert(fws_reserve_bounds_ok(p1320.padding,p1320.cave,p1320.end));
