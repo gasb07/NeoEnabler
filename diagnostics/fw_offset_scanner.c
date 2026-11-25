@@ -886,13 +886,17 @@ static int shellcore_mode(void){
    if(cf)memcpy(&fs,mb+cf+16,4);
    gap=cf?co-cf:0;
    printf("%s{\"stub\":\"0x%lx\",\"got\":\"0x%lx\",\"wrapper\":\"0x%lx\","
-          "\"wrapper_stack\":\"0x%lx\",\"call\":\"0x%lx\",\"caller_function\":\"0x%lx\","
-          "\"function_stack\":\"0x%lx\",\"function_gap\":\"0x%lx\",\"calls\":%u}",
-          printed?",":"",
+          "\"wrapper_stack\":\"0x%lx\",\"caller_function\":\"0x%lx\","
+          "\"function_stack\":\"0x%lx\",\"function_gap\":\"0x%lx\",\"calls\":%u,"
+          "\"call_sites\":[",printed?",":"",
           (unsigned long)stubs[k].stub_off,
           (unsigned long)stubs[k].got_off,(unsigned long)stubs[k].wrapper,
-          (unsigned long)stubs[k].wrapper_stack,(unsigned long)co,
+          (unsigned long)stubs[k].wrapper_stack,
           (unsigned long)cf,(unsigned long)fs,(unsigned long)gap,stubs[k].calls);
+   for(unsigned c=0;c<stubs[k].calls&&c<4;c++)
+    printf("%s\"0x%lx\"",c?",":"",(unsigned long)stubs[k].call_off[c]);
+   if(stubs[k].calls>4)printf("],\"call_sites_trunc\":true}");
+   else fputs("]}",stdout);
    printed++;
   }
  }
