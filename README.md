@@ -22,7 +22,7 @@ If you are on an experimental firmware, please report whether it works with the
 
 PS4 Pro Mode + High Resolution + 120 HZ + CPU/GPU Clock Boost = FW 4.00 to 13.60
 
-8 GiB Memory Support = FW 9.00, 10.01, 12.20, 12.70, 13.20, 13.60
+8 GiB Memory Support = FW 9.00, 10.01, 12.20, 12.70, 13.00 (experimental), 13.20, 13.60
 
 Most patches do not require 8 GiB
 
