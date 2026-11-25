@@ -355,14 +355,14 @@ static int data_mode(const char*state,int write_test,uint64_t expected_backing){
  * libkernel_sys whose 20-byte prologue is FWS_PROLOGUE16+imm32 (wrapper_stack
  * DERIVED from those bytes, never hardcoded). Uniqueness is enforced through
  * the call graph: the winning stub must be the only candidate with e8 rel32
- * callers, and exactly one caller (the profile's call). Any Stage A
- * absence/ambiguity falls through to Stage B; a Stage B ambiguity exits 3
- * with the sites listed. padding is NOT read from main.textsize unchecked:
- * Task 3 measured kernel-ptr-like garbage there (struct fields after mapsize
- * may have shifted), so textsize is used only when plausible, with
- * rx_tail_scan / zero_run_scan as documented fallbacks (padding_source
- * records the method). Every bm_valid() byte check is re-run read-only
- * against the derived profile; nothing is written. */
+ * callers. Any Stage A absence/ambiguity falls through to Stage B; a Stage B
+ * ambiguity exits 3 with the sites listed. padding is NEVER read from
+ * main.textsize (Task 3 measured kernel-ptr-like garbage there that differs
+ * between boots while map offsets are identical): padding comes from
+ * rx_tail_scan with a 4 KiB retry on failed protection queries, with the
+ * buffer-only zero_run_scan as fallback, both under fws_padding_valid
+ * (padding_source records the method). Every bm_valid() byte check is re-run
+ * read-only against the derived profile; nothing is written. */
 
 /* Read whole maps into buffers once: the scans below are byte-granular and
  * would otherwise issue thousands of per-hit copyouts. */
@@ -596,10 +596,13 @@ typedef struct {
  *    all-zero 4 KiB page after the discovered call, padding = last non-zero
  *    byte of the page before it + 1.
  * BOTH paths validate the candidate identically before it may reach the
- * profile: end == the 13.20/13.60 shared text-end page (cross-firmware
- * validation), end <= got (the reservation sits below the GOT),
- * fws_reserve_bounds_ok, and [cave,end) all zero in the map buffer (the
- * bm_reserve precondition - a reservation over code can never pass). */
+ * profile (fws_padding_valid): padding past the discovered call, end past
+ * import_ (the exec region must contain the PLT - kills truncated walks),
+ * end <= got (the reservation sits below the GOT), a non-empty reservation
+ * (end-cave >= 1024), fws_reserve_bounds_ok, and [cave,end) all zero in the
+ * map buffer (the bm_reserve precondition - a reservation over code can
+ * never pass). The text-end page is firmware-specific (13.00 ends at
+ * 0x195808c vs 13.20/13.60 0x1961xxx), so no end==constant check exists. */
 static int sc_derive_padding(int pid,uint64_t base,uint64_t mapsize,
                              const unsigned char*mb,uint64_t call_off,uint64_t import_off,
                              uint64_t got_off,
@@ -703,7 +706,7 @@ static int shellcore_mode(void){
  int have_profile=0;
  uint64_t sites[16];unsigned site_count=0,site_trunc=0;
  sc_siteev b_ev[SC_MAX_SITES];uint32_t b_sites[SC_MAX_SITES];
- unsigned b_count=0,b_surviving=0;int b_trunc=0;uint64_t b_call=0;
+ unsigned b_count=0,b_surviving=0;int b_trunc=0;
  uint64_t selected_site=0;const char*selected_by=NULL;
  fws_profile P;memset(&P,0,sizeof P);
  if(!reason){
@@ -854,32 +857,32 @@ static int shellcore_mode(void){
        b_ev[b_count].gap=i-b_ev[b_count].function;
        b_ev[b_count].survives=fws_site_real_prologue(mb,(size_t)main_obj.mapsize,i,&rpat);
        b_ev[b_count].real_prologue_at=b_ev[b_count].survives?rpat:0;
-       if(b_ev[b_count].survives){b_surviving++;b_call=i;}
+       if(b_ev[b_count].survives)b_surviving++;
        b_count++;
       }else{b_trunc=1;break;}
      }
      if(b_trunc){reason="site_ambiguous";status=3;}
-     else if(!b_surviving){reason="no_surviving_site";status=1;}
-     else if(b_surviving>1){
+     else{
       /* Ruling 3: site2 was classified REAL (exact-rel32 math, P≈1e-5 for an
-       * embedded false positive), so multiple survivors are expected; the
-       * gap invariant (the exact path the hardware-validated 12.20/13.20/
-       * 13.60 profiles intercept) selects the call. Site2 is a presumed-real
-       * second caller, NOT hooked (bm single-call->dual-call is a maintainer
-       * decision, out of this PR's scope). */
-      uint32_t gaps[SC_MAX_SITES];size_t sel=0;
-      for(unsigned k=0;k<b_count;k++)gaps[k]=b_ev[k].gap;
-      int g=fws_gap_select(gaps,b_count,&sel);
-      if(!g){reason="gap_unmatched";status=1;}
+       * embedded false positive), so multiple survivors are expected; among
+       * the SURVIVING sites only (Ruling 2's prologue filter binds first),
+       * the gap invariant (the exact path the hardware-validated 12.20/
+       * 13.20/13.60 profiles intercept) selects the call. Site2 is a
+       * presumed-real second caller, NOT hooked (bm single-call->dual-call
+       * is a maintainer decision, out of this PR's scope). */
+      int surv[SC_MAX_SITES];uint32_t gaps[SC_MAX_SITES];size_t sel=0;
+      for(unsigned k=0;k<b_count;k++){surv[k]=b_ev[k].survives;gaps[k]=b_ev[k].gap;}
+      int g=fws_site_select(surv,gaps,b_count,&sel);
+      if(g==3){reason="no_surviving_site";status=1;}
+      else if(!g){reason="gap_unmatched";status=1;}
       else if(g>1){
        reason="gap_ambiguous";status=3;
        for(unsigned k=0;k<b_count&&site_count<16;k++)
         if(b_ev[k].survives&&b_ev[k].gap==FWS_SIG_FUNCTION_GAP)
          sites[site_count++]=b_ev[k].site;
       }
-      else{selected_site=b_ev[sel].site;selected_by="gap_invariant";call_off=b_call=b_ev[sel].site;}
+      else{selected_site=b_ev[sel].site;selected_by="gap_invariant";call_off=b_ev[sel].site;}
      }
-     else{selected_site=b_ev[0].site;selected_by="prologue_filter";call_off=b_call=b_ev[0].site;}
     }
    }
   }

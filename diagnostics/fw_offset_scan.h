@@ -163,6 +163,29 @@ static inline int fws_gap_select(const uint32_t*gaps,size_t n,size_t*out_index){
  return !matches?0:matches==1?1:2;
 }
 
+/* Rulings 2+3 site selection, in order: the Ruling-2 prologue filter is
+ * applied FIRST (only SURVIVING sites may win), then the Ruling-3 gap
+ * invariant picks among the survivors. survives[i] is the prologue-filter
+ * verdict for site i, gaps[i] its enclosing-function gap. Returns
+ * 3 = no surviving site at all (no_surviving_site),
+ * 0 = no surviving site matches the gap invariant (gap_unmatched),
+ * 1 = unique match, *out_index = input index of the winning survivor,
+ * 2 = two or more survivors match (gap_ambiguous). */
+static inline int fws_site_select(const int*survives,const uint32_t*gaps,
+                                  size_t n,size_t*out_index){
+ size_t matches=0,surv=0;
+ for(size_t i=0;i<n;i++){
+  if(!survives[i])continue;
+  surv++;
+  if(gaps[i]!=FWS_SIG_FUNCTION_GAP)continue;
+  if(!matches)*out_index=i;
+  matches++;
+ }
+ if(!surv)return 3;
+ if(matches==1)return 1;
+ return matches?2:0;
+}
+
 /* Padding-candidate validation, shared by every derivation path: the
  * candidate must reproduce a workable bm_reserve shape, not just arithmetic.
  *   - padding > call_off (the reservation tail lies past the patched call),

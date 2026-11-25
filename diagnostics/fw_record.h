@@ -61,9 +61,10 @@ static inline void fws_print_candidate(FILE*f,const char*state,uint32_t backing_
 
 /* ShellCore profile record (mode shellcore): exactly one brace level around
  * the "profile" object and around "bm_valid_dry_run", both opened and closed
- * here. padding_source names the derivation method (textsize | rx_tail_scan |
- * zero_run_scan; null when no padding was derived); failing_check is null on
- * a passing dry run, otherwise the first failed bm_valid check. */
+ * here. padding_source names the derivation method (rx_tail_scan |
+ * zero_run_scan; textsize is never used on 13.00 - ledger: garbage; null
+ * when no padding was derived); failing_check is null on a passing dry run,
+ * otherwise the first failed bm_valid check. */
 static inline void fws_print_bytes(FILE*f,const unsigned char*b,size_t n){
  for(size_t i=0;i<n;i++)fprintf(f,"%02x",b[i]);
 }

@@ -134,6 +134,9 @@ int main(int argc,char**argv){
   * call-function distance of the hardware-validated 12.20/13.20/13.60
   * profiles) selects the call. No match -> gap_unmatched; two matches ->
   * gap_ambiguous; the loser's evidence stays recorded. */
+ /* site_select_prefix replicates the PRE-FIX scanner selection (review
+  * findings 1+2): gap matching over ALL sites ignoring the prologue filter,
+  * and the single-survivor branch picking index 0 unconditionally. */
  {
   uint32_t g1[]={0xe51,0x8dc};size_t sel=0;
   assert(fws_gap_select(g1,2,&sel)==1&&sel==0);      /* first site wins */
@@ -143,6 +146,36 @@ int main(int argc,char**argv){
   assert(fws_gap_select(g0,2,&sel)==0);              /* none: gap_unmatched */
   uint32_t gA[]={0xe51,0x8dc,0xe51};sel=0;
   assert(fws_gap_select(gA,3,&sel)==2);              /* two: gap_ambiguous */
+ }
+ /* Review findings 1+2 (site selection must first restrict to SURVIVING
+  * sites, then apply the gap invariant): */
+ {
+  /* Test A: a NON-surviving site whose gap is 0xe51 must NOT win, and must
+   * not mask gap_unmatched when no surviving site matches */
+  {
+   static int sv[]={0,1};static uint32_t gp[]={0xe51,0x8dc};size_t s;
+   assert(fws_site_select(sv,gp,2,&s)==0);      /* gap_unmatched: the 0xe51 site did not survive */
+  }
+  /* Test A2: a non-surviving duplicate 0xe51 must not force gap_ambiguous */
+  {
+   static int sv[]={1,0};static uint32_t gp[]={0xe51,0xe51};size_t s;
+   assert(fws_site_select(sv,gp,2,&s)==1&&s==0);      /* the survivor wins */
+  }
+  /* Test B: the single survivor must be picked, not index 0 */
+  {
+   static int sv[]={0,1};static uint32_t gp[]={0x123,0xe51};size_t s;
+   assert(fws_site_select(sv,gp,2,&s)==1&&s==1);      /* the survivor (index 1), not index 0 */
+  }
+  /* two SURVIVING 0xe51 sites -> gap_ambiguous */
+  {
+   int sv[]={1,1};static uint32_t gp[]={0xe51,0xe51};size_t sel;
+   assert(fws_site_select(sv,gp,2,&sel)==2);
+  }
+  /* no surviving site at all -> no_surviving_site semantics */
+  {
+   int sv[]={0,0};static uint32_t gp[]={0xe51,0xe51};size_t sel;
+   assert(fws_site_select(sv,gp,2,&sel)==3);
+  }
  }
  /* Text-end derivation from a map snapshot must reproduce the exact stored
   * 13.20 and 13.60 tuples from shaped mock maps (code, tail zero padding to
