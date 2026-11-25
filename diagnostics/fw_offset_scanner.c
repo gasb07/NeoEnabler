@@ -64,15 +64,21 @@ static int find_proc(const char*comm){
 }
 /* First occurrence of nid in [start,start+size) via userland process reads;
  * chunked with nlen-1 overlap so a match across a chunk boundary is found.
- * Returns the absolute address, or 0. Never prints the bytes read. */
-static uint64_t nid_scan(int pid,uint64_t start,size_t size,const char*nid){
+ * Returns the absolute address, or 0. Never prints the bytes read.
+ * *failed_chunks counts chunks that could not be read (plus a malloc
+ * failure), so a negative verdict is distinguishable from an unreadable map. */
+static uint64_t nid_scan(int pid,uint64_t start,size_t size,const char*nid,unsigned*failed_chunks){
  size_t nlen=strlen(nid),chunk=1<<20;
  unsigned char*b=malloc(chunk+nlen);
- if(!b||!nlen){free(b);return 0;}
+ if(failed_chunks)*failed_chunks=0;
+ if(!b||!nlen){free(b);if(failed_chunks)(*failed_chunks)++;return 0;}
  uint64_t found=0;
  for(size_t pos=0;pos<size&&!found;pos+=chunk){
   size_t len=size-pos<chunk+nlen-1?size-pos:chunk+nlen-1;
-  if(len<nlen||kernel_proc_copyout(pid,(intptr_t)(start+pos),b,len))continue;
+  if(len<nlen||kernel_proc_copyout(pid,(intptr_t)(start+pos),b,len)){
+   if(len>=nlen&&failed_chunks)(*failed_chunks)++;
+   continue;
+  }
   for(size_t i=0;i+nlen<=len&&!found;i++)
    if(b[i]==(unsigned char)nid[0]&&!memcmp(b+i,nid,nlen))found=start+pos+i;
  }
@@ -88,7 +94,7 @@ static int probe_mode(void){
  uint64_t data_base=(uint64_t)KERNEL_ADDRESS_DATA_BASE;
  int shellcore_pid=-1,obj_rc=-1,handle_rc=-1,lib_rc=-1,probes_ok=0;
  uint32_t handle=0;dynlib_obj_t main={0},lib={0};
- uint64_t nid_off=0;int probed=0,shellcore_resolved=0,nid_present=0;
+ uint64_t nid_off=0;unsigned nid_failed=0;int probed=0,shellcore_resolved=0,nid_present=0;
  /* Everything runs only on the matching firmware; otherwise stop per the
   * stop semantics and report wrong_firmware with exit 2. */
  if(fw_rc)status=1;
@@ -108,13 +114,13 @@ static int probe_mode(void){
    if(shellcore_resolved){
     errno=0;handle_rc=kernel_dynlib_handle(shellcore_pid,"libkernel_sys.sprx",&handle);
     if(!handle_rc){errno=0;lib_rc=kernel_dynlib_obj(shellcore_pid,handle,&lib);}
-    nid_off=nid_scan(shellcore_pid,main.mapbase,(size_t)main.mapsize,NID);
+    nid_off=nid_scan(shellcore_pid,main.mapbase,(size_t)main.mapsize,NID,&nid_failed);
     nid_present=nid_off!=0;
    }
   }
   if(probes_ok<1)reason="no_data_probes";
   else if(!shellcore_resolved)reason="shellcore_unresolved";
-  else if(!nid_present)reason="nid_absent";
+  else if(!nid_present)reason=nid_failed?"nid_scan_incomplete":"nid_absent";
   status=reason?1:0;
  }
  begin("session");printf(",\"mode\":\"probe\",\"firmware_raw\":");
@@ -124,9 +130,12 @@ static int probe_mode(void){
  hexq(data_base);
  fputs(",\"probes\":[",stdout);
  for(unsigned i=0;i<PROBE_COUNT;i++){
-  printf("%s{\"offset\":\"0x%lx\",\"rc\":%d,\"errno\":%d,\"value_hex\":",i?",":"",
-         (unsigned long)probe_offs[i],probes[i].rc,probes[i].error);
-  if(!probes[i].rc)hexq(probes[i].value);else fputs("null",stdout);
+  printf("%s{\"offset\":\"0x%lx\",\"rc\":",i?",":"",(unsigned long)probe_offs[i]);
+  /* Probes only ran on the matching firmware; unexecuted reads are reported
+   * as rc:-1/value_hex:null, never as successes. */
+  if(probed)printf("%d,\"errno\":%d,\"value_hex\":",probes[i].rc,probes[i].error);
+  else fputs("-1,\"errno\":0,\"value_hex\":",stdout);
+  if(probed&&!probes[i].rc)hexq(probes[i].value);else fputs("null",stdout);
   putchar('}');
  }
  printf("],\"probes_ok\":%d,\"shellcore_pid\":",probes_ok);
@@ -142,7 +151,8 @@ static int probe_mode(void){
  fputs(",\"nid\":",stdout);string(NID);
  printf(",\"nid_present\":%s,\"nid_offset\":",nid_present?"true":"false");
  hexopt(nid_present,nid_off);
- printf(",\"probed\":%s,\"ok\":%s,\"reason\":",probed?"true":"false",status?"false":"true");
+ printf(",\"nid_failed_chunks\":%u,\"probed\":%s,\"ok\":%s,\"reason\":",nid_failed,
+        probed?"true":"false",status?"false":"true");
  if(reason)string(reason);else fputs("null",stdout);
  fputs("}\n",stdout);
  return status;
